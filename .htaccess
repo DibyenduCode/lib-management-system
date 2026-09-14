@@ -1,0 +1,26 @@
+# ============================================================
+# SAYAK LIBRARY - Apache Web Server Configuration (.htaccess)
+# Compatible with XAMPP Local & cPanel Shared Hosting
+# ============================================================
+
+# Disable Directory Browsing
+Options -Indexes
+
+# Custom Error Pages
+ErrorDocument 404 /sayak-library/errors/404.php
+ErrorDocument 403 /sayak-library/errors/403.php
+ErrorDocument 500 /sayak-library/errors/500.php
+
+# Security Protections - Protect sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "(database\.sql|config\.php|database\.php|\.env|\.log|error_log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Set UTF-8 encoding
+AddDefaultCharset UTF-8

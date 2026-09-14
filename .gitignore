@@ -1,0 +1,25 @@
+# Environment & Server files
+.env
+*.local
+
+# System & OS
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# IDEs
+.vscode/
+.idea/
+
+# Large uploads & dynamic content (keep directory structure with .gitkeep)
+uploads/covers/*
+!uploads/covers/.gitkeep
+uploads/gallery/*
+!uploads/gallery/.gitkeep
+uploads/members/*
+!uploads/members/.gitkeep
+
+# Sensitive private PDFs
+private_pdfs/*
+!private_pdfs/.gitkeep

@@ -1,0 +1,664 @@
+/* ============================================================
+ * SAYAK LIBRARY - Main Stylesheet
+ * Custom Responsive Institutional CSS Theme
+ * ============================================================ */
+
+:root {
+  --primary-maroon: #7A0C0C;
+  --primary-maroon-dark: #580808;
+  --primary-maroon-light: #9B1A1A;
+  --gold-accent: #D4AF37;
+  --gold-hover: #B59325;
+  --bg-light: #F8F9FA;
+  --card-bg: #FFFFFF;
+  --text-dark: #212529;
+  --text-muted: #6C757D;
+  --border-color: #E9ECEF;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* Top Announcement Ticker Bar */
+.top-notice-bar {
+  background-color: #4A0505;
+  color: #F8F9FA;
+  font-size: 0.85rem;
+  padding: 6px 0;
+}
+
+.top-notice-bar a {
+  color: #FFD700;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.top-notice-bar a:hover {
+  text-decoration: underline;
+}
+
+/* Main Brand Header */
+.main-header {
+  background: #FFFFFF;
+  border-bottom: 3px solid var(--primary-maroon);
+  padding: 12px 0;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: 1040;
+}
+
+.brand-logo-img {
+  width: 78px;
+  height: 78px;
+  object-fit: cover;
+  background-color: #ffffff;
+  border-radius: 50%;
+  border: 2px solid var(--primary-maroon);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.brand-logo-img:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(139, 30, 38, 0.18);
+}
+
+@media (max-width: 576px) {
+  .brand-logo-img {
+    width: 62px;
+    height: 62px;
+  }
+}
+
+.brand-title {
+  font-family: 'Georgia', serif;
+  font-weight: 700;
+  color: var(--primary-maroon);
+  font-size: 1.85rem;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.brand-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Navigation Bar */
+.main-navbar {
+  background-color: var(--primary-maroon);
+  padding: 0;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 1020;
+}
+
+.main-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 14px 18px !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.main-navbar .nav-link:hover,
+.main-navbar .nav-link.active {
+  color: #FFFFFF !important;
+  background-color: var(--primary-maroon-dark);
+}
+
+.main-navbar .dropdown-menu,
+.dropdown-menu {
+  border: none;
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-sm);
+  padding: 8px 0;
+  margin-top: 0;
+  z-index: 1080 !important;
+}
+
+/* Enable Desktop Hover Dropdown */
+@media (min-width: 992px) {
+  .main-navbar .nav-item.dropdown:hover .dropdown-menu {
+    display: block;
+    animation: fadeIn 0.2s ease-in-out;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.main-navbar .dropdown-item {
+  font-size: 0.9rem;
+  padding: 8px 20px;
+  color: var(--text-dark);
+}
+
+.main-navbar .dropdown-item:hover {
+  background-color: #F8F9FA;
+  color: var(--primary-maroon);
+  font-weight: 500;
+}
+
+/* Custom Action Buttons */
+.btn-maroon {
+  background-color: var(--primary-maroon);
+  color: #FFFFFF;
+  border: none;
+  font-weight: 500;
+  padding: 8px 20px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.btn-maroon:hover {
+  background-color: var(--primary-maroon-dark);
+  color: #FFFFFF;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-gold {
+  background-color: var(--gold-accent);
+  color: #1A1A1A;
+  border: none;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.btn-gold:hover {
+  background-color: var(--gold-hover);
+  color: #000000;
+}
+
+.btn-outline-maroon {
+  border: 1.5px solid var(--primary-maroon);
+  color: var(--primary-maroon);
+  background: transparent;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+}
+
+.btn-outline-maroon:hover {
+  background: var(--primary-maroon);
+  color: #FFFFFF;
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(135deg, var(--primary-maroon-dark) 0%, var(--primary-maroon) 100%);
+  color: #FFFFFF;
+  padding: 60px 0 50px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-title {
+  font-family: 'Georgia', serif;
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.hero-lead {
+  font-size: 1.15rem;
+  opacity: 0.92;
+  margin-bottom: 28px;
+}
+
+/* Custom Cards */
+.sayak-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.sayak-card:hover {
+  transform: none !important;
+}
+
+.card-header-maroon {
+  background-color: var(--primary-maroon);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 14px 20px;
+  border-bottom: none;
+}
+
+/* Badges */
+.badge-status-active {
+  background-color: #D1E7DD;
+  color: #0F5132;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.badge-status-expired, .badge-status-restricted {
+  background-color: #F8D7DA;
+  color: #842029;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.badge-status-pending {
+  background-color: #FFF3CD;
+  color: #664D03;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* Section Headings */
+.section-title {
+  font-family: 'Georgia', serif;
+  color: var(--primary-maroon);
+  font-weight: 700;
+  position: relative;
+  margin-bottom: 30px;
+  padding-bottom: 10px;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 60px;
+  height: 3px;
+  background-color: var(--gold-accent);
+}
+
+.section-title.text-center::after {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Book Cover Cards */
+.book-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-cover-wrapper {
+  height: 240px;
+  background-color: #EAEAEA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.book-cover-img {
+  max-height: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
+.book-card:hover .book-cover-img {
+  transform: none !important;
+}
+
+/* Global reset for section / card hover animations */
+.sayak-card,
+.card,
+.metric-card,
+.book-card,
+.section-title {
+  transition: none !important;
+}
+
+.sayak-card:hover,
+.card:hover,
+.metric-card:hover,
+.book-card:hover {
+  transform: none !important;
+}
+
+/* Admin & Dashboard Sidebar */
+.sidebar-wrapper {
+  background: #FFFFFF;
+  border-right: 1px solid var(--border-color);
+  min-height: calc(100vh - 120px);
+}
+
+.sidebar-heading {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  padding: 16px 20px 6px 20px;
+  font-weight: 700;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-menu a {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: var(--text-dark);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.92rem;
+  transition: background 0.15s ease;
+}
+
+.sidebar-menu a:hover,
+.sidebar-menu a.active {
+  background-color: #F8F9FA;
+  color: var(--primary-maroon);
+  border-left: 4px solid var(--primary-maroon);
+  font-weight: 600;
+}
+
+.sidebar-menu a i {
+  width: 24px;
+  margin-right: 10px;
+  color: var(--primary-maroon);
+}
+
+/* Metric Cards */
+.metric-card {
+  background: #FFFFFF;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  border-left: 5px solid var(--primary-maroon);
+  box-shadow: var(--shadow-sm);
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-maroon);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.metric-label {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+/* Printable Cash Receipt Styling */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-receipt, .printable-receipt * {
+    visibility: visible;
+  }
+  .printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Footer Styling */
+.site-footer {
+  background-color: #2D0505;
+  color: #D3D3D3;
+  padding: 50px 0 20px 0;
+  font-size: 0.9rem;
+}
+
+.site-footer h5 {
+  color: #FFFFFF;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.site-footer a {
+  color: #D3D3D3;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.site-footer a:hover {
+  color: var(--gold-accent);
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 20px;
+  margin-top: 40px;
+}
+
+/* Portal Sidebar Nav Items */
+.portal-sidebar-links .nav-link {
+  color: #475569;
+  font-weight: 500;
+  font-size: 0.88rem;
+  padding: 9px 13px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  margin-bottom: 2px;
+}
+
+.portal-sidebar-links .nav-link:hover {
+  background-color: #F1F5F9;
+  color: #0F172A;
+}
+
+.portal-sidebar-links .nav-link.active {
+  background-color: #8B1E26 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(139, 30, 38, 0.22);
+}
+
+.portal-sidebar-links .nav-link.active i {
+  color: #FEE2E2 !important;
+}
+
+/* ============================================================
+ * USER-FRIENDLY DASHBOARD THEME ENHANCEMENTS
+ * ============================================================ */
+body.dashboard-layout {
+  background-color: #F8FAFC !important;
+  color: #1E293B !important;
+}
+
+/* Dashboard Top Header */
+.dashboard-layout .dashboard-navbar {
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+.dashboard-layout .dashboard-navbar .navbar-brand span {
+  color: #0F172A !important;
+}
+
+/* Dashboard Surface Cards */
+.dashboard-layout .sayak-card,
+.dashboard-layout .card {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Friendly Card Headers (Clean White with subtle border instead of harsh dark block) */
+.dashboard-layout .card-header.bg-maroon,
+.dashboard-layout .card-header {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  padding: 1rem 1.25rem !important;
+  font-weight: 700 !important;
+}
+
+.dashboard-layout .card-header i {
+  color: #8B1E26 !important;
+}
+
+/* Friendly KPI Metric Cards */
+.dashboard-layout .metric-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 12px !important;
+  padding: 18px 20px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.dashboard-layout .metric-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06) !important;
+}
+
+.dashboard-layout .metric-value {
+  font-size: 1.85rem !important;
+  font-weight: 700 !important;
+  color: #0F172A !important;
+  line-height: 1.2 !important;
+  margin-bottom: 4px !important;
+}
+
+.dashboard-layout .metric-label {
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: #64748B !important;
+}
+
+/* Friendly Dashboard Tables */
+.dashboard-layout .table {
+  color: #334155;
+}
+
+.dashboard-layout .table thead th {
+  background-color: #F8FAFC !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 0.78rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  padding: 12px 14px !important;
+}
+
+.dashboard-layout .table tbody td {
+  padding: 12px 14px !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+  vertical-align: middle !important;
+}
+
+.dashboard-layout .table-hover tbody tr:hover {
+  background-color: #F8FAFC !important;
+}
+
+/* Friendly Badges */
+.dashboard-layout .badge.bg-maroon {
+  background-color: #FEF2F2 !important;
+  color: #991B1B !important;
+  border: 1px solid #FEE2E2 !important;
+  font-weight: 600;
+}
+
+.dashboard-layout .badge.bg-gold {
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  border: 1px solid #FDE68A !important;
+  font-weight: 600;
+}
+
+/* Friendly Action Buttons */
+.dashboard-layout .btn-maroon {
+  background-color: #8B1E26 !important;
+  border-color: #8B1E26 !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.15s ease !important;
+}
+
+.dashboard-layout .btn-maroon:hover {
+  background-color: #6E131A !important;
+  border-color: #6E131A !important;
+  box-shadow: 0 2px 6px rgba(139, 30, 38, 0.2) !important;
+}
+
+.dashboard-layout .btn-outline-maroon {
+  color: #8B1E26 !important;
+  border-color: #E2E8F0 !important;
+  background-color: #FFFFFF !important;
+  border-radius: 8px !important;
+}
+
+.dashboard-layout .btn-outline-maroon:hover {
+  background-color: #FEF2F2 !important;
+  border-color: #FECACA !important;
+  color: #991B1B !important;
+}
+
+.dashboard-layout .btn-gold {
+  background-color: #D97706 !important;
+  border-color: #D97706 !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+}
+
+.dashboard-layout .btn-gold:hover {
+  background-color: #B45309 !important;
+  border-color: #B45309 !important;
+  color: #FFFFFF !important;
+}
+
+.dashboard-layout .section-title {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+.dashboard-layout .section-title::after {
+  background-color: #8B1E26 !important;
+  width: 40px !important;
+  height: 3px !important;
+}
+
+/* Form Inputs in Dashboard */
+.dashboard-layout .form-control,
+.dashboard-layout .form-select {
+  border-color: #CBD5E1 !important;
+  border-radius: 8px !important;
+  color: #1E293B !important;
+}
+
+.dashboard-layout .form-control:focus,
+.dashboard-layout .form-select:focus {
+  border-color: #8B1E26 !important;
+  box-shadow: 0 0 0 3px rgba(139, 30, 38, 0.12) !important;
+}
