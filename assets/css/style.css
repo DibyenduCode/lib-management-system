@@ -194,11 +194,16 @@ body {
   background: transparent;
   font-weight: 500;
   border-radius: var(--radius-sm);
+  transition: all 0.2s ease-in-out;
 }
 
-.btn-outline-maroon:hover {
-  background: var(--primary-maroon);
-  color: #FFFFFF;
+.btn-outline-maroon:hover,
+.btn-outline-maroon:focus,
+.btn-outline-maroon:active,
+.btn-outline-maroon.active {
+  background: var(--primary-maroon) !important;
+  color: #FFFFFF !important;
+  border-color: var(--primary-maroon) !important;
 }
 
 /* Hero Section */
@@ -662,3 +667,103 @@ body.dashboard-layout {
   border-color: #8B1E26 !important;
   box-shadow: 0 0 0 3px rgba(139, 30, 38, 0.12) !important;
 }
+
+/* ============================================================ */
+/* RESPONSIVE DESIGN SYSTEM (MOBILE, TABLET, DESKTOP)           */
+/* ============================================================ */
+
+/* Desktops & Laptops (>= 992px) */
+@media (min-width: 992px) {
+  .hero-title {
+    font-size: 2.8rem;
+  }
+}
+
+/* Tablets (768px to 991px) */
+@media (max-width: 991.98px) {
+  .hero-title {
+    font-size: 2.2rem;
+  }
+  .hero-lead {
+    font-size: 1.05rem;
+  }
+  .main-navbar .nav-link {
+    padding: 10px 14px !important;
+  }
+}
+
+/* Mobile & Phablets (< 768px) */
+@media (max-width: 767.98px) {
+  .brand-title {
+    font-size: 1.25rem !important;
+    line-height: 1.2 !important;
+  }
+  .brand-subtitle {
+    font-size: 0.72rem !important;
+  }
+  .brand-logo-img {
+    width: 58px !important;
+    height: 58px !important;
+  }
+  .hero-section {
+    padding: 40px 0 35px 0 !important;
+  }
+  .hero-title {
+    font-size: 1.75rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 12px !important;
+  }
+  .hero-lead {
+    font-size: 0.95rem !important;
+    margin-bottom: 20px !important;
+  }
+  .section-title {
+    font-size: 1.5rem !important;
+  }
+  .card {
+    border-radius: 10px !important;
+  }
+  .pdf-embed-container {
+    min-height: 440px !important;
+    height: 440px !important;
+  }
+  .pdf-embed-container iframe {
+    min-height: 440px !important;
+    height: 440px !important;
+  }
+}
+
+/* Small Phones (< 576px) */
+@media (max-width: 575.98px) {
+  .brand-title {
+    font-size: 1.05rem !important;
+    line-height: 1.15 !important;
+  }
+  .brand-subtitle {
+    font-size: 0.65rem !important;
+  }
+  .brand-logo-img {
+    width: 48px !important;
+    height: 48px !important;
+    margin-right: 8px !important;
+  }
+  .hero-title {
+    font-size: 1.5rem !important;
+  }
+  .pdf-embed-container {
+    min-height: 360px !important;
+    height: 360px !important;
+  }
+  .pdf-embed-container iframe {
+    min-height: 360px !important;
+    height: 360px !important;
+  }
+  .modal-dialog {
+    margin: 0.5rem !important;
+  }
+  .btn-lg {
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+  }
+}
+

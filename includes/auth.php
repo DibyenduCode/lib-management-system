@@ -37,6 +37,9 @@ function login_user(string $email, string $password): array {
         return ['success' => false, 'message' => 'Your account is suspended. Please contact library administration.'];
     }
 
+    // Regenerate session ID to prevent session fixation attacks
+    session_regenerate_id(true);
+
     // Set Session Variables
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['role_id'] = $user['role_id'];

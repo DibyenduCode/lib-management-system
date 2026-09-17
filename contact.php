@@ -60,7 +60,13 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <div>
                         <h6 class="fw-bold mb-1 font-serif">Library Location</h6>
-                        <p class="text-secondary small mb-0"><?= nl2br(escape(get_setting('address', '124 Academic Avenue, College Street, Kolkata, West Bengal - 700073'))) ?></p>
+                        <p class="text-secondary small mb-1"><?= nl2br(escape(get_setting('address', '11, Nepal Chandra Chatterjee Street, Ariadaha, Kolkata - 700057'))) ?></p>
+                        <?php $mapsLink = get_setting('google_maps_link', 'https://maps.app.goo.gl/cJvtR8DGniZ4VaM7A'); ?>
+                        <?php if (!empty($mapsLink)): ?>
+                            <a href="<?= escape($mapsLink) ?>" target="_blank" class="small fw-bold text-maroon font-serif" style="color: #7A0C0C;">
+                                <i class="fas fa-directions me-1"></i> Get Directions on Google Maps <i class="fas fa-external-link-alt ms-1" style="font-size: 10px;"></i>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -70,7 +76,7 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <div>
                         <h6 class="fw-bold mb-1 font-serif">Phone Helpline</h6>
-                        <p class="text-secondary small mb-0"><?= escape(get_setting('phone', '+91 33 2241 8900 / +91 98300 12345')) ?></p>
+                        <p class="text-secondary small mb-0"><?= escape(get_setting('phone', '7595929232, 8420011218')) ?></p>
                         <?php if (!empty(get_setting('phone_secondary'))): ?>
                             <p class="text-muted small mb-0 mt-1"><i class="fab fa-whatsapp text-success me-1"></i> Helpline: <?= escape(get_setting('phone_secondary')) ?></p>
                         <?php endif; ?>
@@ -83,7 +89,7 @@ require_once __DIR__ . '/includes/header.php';
                     </div>
                     <div>
                         <h6 class="fw-bold mb-1 font-serif">Email Support</h6>
-                        <p class="text-secondary small mb-0"><?= escape(get_setting('email', 'info@sayaklibrary.org')) ?></p>
+                        <p class="text-secondary small mb-0"><?= escape(get_setting('email', 'dakshineswarshayak1997@gmail.com')) ?></p>
                         <?php if (!empty(get_setting('email_support'))): ?>
                             <p class="text-muted small mb-0 mt-1"><i class="fas fa-headset me-1 text-primary"></i> Support: <?= escape(get_setting('email_support')) ?></p>
                         <?php endif; ?>
@@ -102,11 +108,18 @@ require_once __DIR__ . '/includes/header.php';
 
                 <!-- Google Map Embed Container -->
                 <?php 
-                $mapUrl = get_setting('map_embed_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3684.128795764048!2d88.3638927!3d22.574343!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a0277ab54a83b27%3A0xb36384a56828551!2sCollege%20St%2C%20Kolkata%2C%20West%20Bengal!5e0!3m2!1sen!2sin!4v1680000000000!5m2!1sen!2sin');
+                $mapUrl = get_setting('map_embed_url', 'https://maps.google.com/maps?q=Dakshineswar+Shayak+Library,+11,+Nepal+Chandra+Chatterjee+St,+Ariadaha,+Kolkata,+West+Bengal+700057&output=embed');
                 ?>
-                <div class="mt-4 rounded overflow-hidden shadow-sm border" style="height: 180px;">
+                <div class="mt-4 rounded overflow-hidden shadow-sm border" style="height: 190px;">
                     <iframe src="<?= escape($mapUrl) ?>" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                 </div>
+                <?php if (!empty($mapsLink)): ?>
+                    <div class="text-end mt-2">
+                        <a href="<?= escape($mapsLink) ?>" target="_blank" class="btn btn-sm btn-outline-maroon font-serif" style="font-size: 12px;">
+                            <i class="fas fa-map-marked-alt me-1"></i> Open in Google Maps App
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 

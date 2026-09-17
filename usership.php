@@ -234,7 +234,7 @@ if ($membershipMode === 'pdf') {
                                         <i class="fas fa-map-marker-alt me-1"></i> Submission Desk Address
                                     </h6>
                                     <p class="small text-muted mb-0">
-                                        <?= escape(get_setting('address', '124 Academic Avenue, College Street, Kolkata, West Bengal - 700073')) ?>
+                                        <?= escape(get_setting('address', '11, Nepal Chandra Chatterjee Street, Ariadaha, Kolkata - 700057')) ?>
                                     </p>
                                 </div>
                             </div>
@@ -247,7 +247,7 @@ if ($membershipMode === 'pdf') {
                                         <strong>Opening Hours:</strong> <?= escape(get_setting('opening_hours', 'Monday - Saturday: 9:00 AM - 7:00 PM')) ?>
                                     </p>
                                     <p class="small text-muted mb-0">
-                                        <strong>Phone:</strong> <?= escape(get_setting('phone', '+91 33 2241 8900')) ?>
+                                        <strong>Phone:</strong> <?= escape(get_setting('phone', '7595929232, 8420011218')) ?>
                                     </p>
                                 </div>
                             </div>
@@ -294,7 +294,7 @@ if ($membershipMode === 'pdf') {
                     <div class="card sayak-card border-0 shadow-sm overflow-hidden mb-4">
                         <div class="card-header bg-white font-serif py-3 fw-bold d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-file-pdf text-danger me-2"></i> Application Form Preview</span>
-                            <a href="<?= escape($pdfUrl) ?>" download class="btn btn-outline-maroon btn-sm" style="color: #7A0C0C; border-color: #7A0C0C;">
+                            <a href="<?= escape($pdfUrl) ?>" download class="btn btn-outline-maroon btn-sm">
                                 <i class="fas fa-download me-1"></i> Download Form
                             </a>
                         </div>

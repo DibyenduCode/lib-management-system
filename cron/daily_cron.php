@@ -6,6 +6,20 @@
 
 // Handle CLI or Secret Key execution
 require_once __DIR__ . '/../includes/config.php';
+
+// Execution Security Check: Allow CLI execution or token-authorized web execution
+$isCli = (php_sapi_name() === 'cli' || empty($_SERVER['REMOTE_ADDR']));
+if (!$isCli) {
+    $providedKey = $_GET['key'] ?? '';
+    $configuredKey = defined('CRON_SECRET_KEY') ? CRON_SECRET_KEY : '';
+    if (empty($providedKey) || empty($configuredKey) || !hash_equals($configuredKey, $providedKey)) {
+        header("HTTP/1.1 403 Forbidden");
+        header("Content-Type: text/plain; charset=UTF-8");
+        exit("403 Forbidden: Invalid or missing cron authorization key.\n");
+    }
+    header("Content-Type: text/plain; charset=UTF-8");
+}
+
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';

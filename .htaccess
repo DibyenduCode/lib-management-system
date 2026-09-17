@@ -1,26 +1,57 @@
 # ============================================================
 # SAYAK LIBRARY - Apache Web Server Configuration (.htaccess)
-# Compatible with XAMPP Local & cPanel Shared Hosting
+# Production Ready for cPanel Shared Hosting & Local XAMPP
 # ============================================================
 
 # Disable Directory Browsing
-Options -Indexes
+Options -Indexes -MultiViews
 
-# Custom Error Pages
-ErrorDocument 404 /sayak-library/errors/404.php
-ErrorDocument 403 /sayak-library/errors/403.php
-ErrorDocument 500 /sayak-library/errors/500.php
-
-# Security Protections - Protect sensitive files
-<FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
-<FilesMatch "(database\.sql|config\.php|database\.php|\.env|\.log|error_log)$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
-# Set UTF-8 encoding
+# Default Charset
 AddDefaultCharset UTF-8
+
+# Custom Error Pages (cPanel public_html root)
+ErrorDocument 404 /errors/404.php
+ErrorDocument 403 /errors/403.php
+ErrorDocument 500 /errors/500.php
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Protect Hidden Files and Version Control (.git, .env, etc.)
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Protect Sensitive System Files, Databases, and Logs
+<FilesMatch "(^#.*#|\.(sql|log|ini|env|example|md|git.*)|error_log)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Block Direct Web Access to Application Core PHP Files in Root
+<FilesMatch "^(database\.sql|composer\.json|package\.json)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+

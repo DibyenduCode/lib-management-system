@@ -37,33 +37,50 @@ if (APP_ENV === 'development') {
 // Load Detailed Error & Exception Logger
 require_once __DIR__ . '/logger.php';
 
-// Database Credentials
-define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'sayak_library');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_PORT', 3306);
-define('DB_CHARSET', 'utf8mb4');
-
-// Dynamic Base URL detection
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) ? "https://" : "http://";
-$domainName = $_SERVER['HTTP_HOST'] ?? 'localhost';
-
-// Detect subfolder path dynamically
-$scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '/index.php');
-$dirName = dirname($scriptName);
-
-// Check if running under /sayak-library or /lib
-if (strpos($dirName, '/sayak-library') === 0) {
-    $basePath = '/sayak-library/';
-} elseif (strpos($dirName, '/lib') === 0) {
-    $basePath = '/lib/';
-} else {
-    $basePath = rtrim($dirName, '/') . '/';
-    if ($basePath === '//') $basePath = '/';
+// Optional Local/cPanel Environment Override
+if (file_exists(__DIR__ . '/config.local.php')) {
+    require_once __DIR__ . '/config.local.php';
 }
 
-define('BASE_URL', $protocol . $domainName . $basePath);
+// Database Credentials
+if (!defined('DB_HOST')) define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
+if (!defined('DB_NAME')) define('DB_NAME', getenv('DB_NAME') ?: 'sayak_library');
+if (!defined('DB_USER')) define('DB_USER', getenv('DB_USER') ?: 'root');
+if (!defined('DB_PASS')) define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
+if (!defined('DB_PORT')) define('DB_PORT', (int)(getenv('DB_PORT') ?: 3306));
+if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
+
+// Dynamic Base URL detection (if not defined in config.local.php)
+if (!defined('BASE_URL')) {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) ? "https://" : "http://";
+    $domainName = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+    // Detect base path dynamically based on DOCUMENT_ROOT and ROOT_PATH
+    $projectDir = str_replace('\\', '/', realpath(__DIR__ . '/../'));
+    $docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'])) : '';
+
+    if (!empty($docRoot) && !empty($projectDir) && strpos($projectDir, $docRoot) === 0) {
+        $relPath = substr($projectDir, strlen($docRoot));
+        $basePath = '/' . trim($relPath, '/') . '/';
+        if ($basePath === '//') {
+            $basePath = '/';
+        }
+    } else {
+        // Fallback detection
+        $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '/index.php');
+        $dirName = dirname($scriptName);
+        if (strpos($dirName, '/sayak-library') === 0) {
+            $basePath = '/sayak-library/';
+        } elseif (strpos($dirName, '/lib') === 0) {
+            $basePath = '/lib/';
+        } else {
+            $basePath = '/';
+        }
+    }
+
+    define('BASE_URL', $protocol . $domainName . $basePath);
+}
+
 define('ROOT_PATH', __DIR__ . '/../');
 define('LOG_DIR', ROOT_PATH . 'logs/');
 define('ERROR_LOG_PATH', LOG_DIR . 'error.log');
@@ -72,10 +89,19 @@ define('UPLOAD_COVER_DIR', ROOT_PATH . 'uploads/covers/');
 define('UPLOAD_GALLERY_DIR', ROOT_PATH . 'uploads/gallery/');
 define('UPLOAD_MEMBER_DIR', ROOT_PATH . 'uploads/members/');
 
+// Default Cron Secret Key if not overridden
+if (!defined('CRON_SECRET_KEY')) {
+    define('CRON_SECRET_KEY', 'sayak_library_cron_' . md5(__DIR__));
+}
+
 // Start Secure PHP Session & Output Buffering
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     ini_set('session.cookie_httponly', 1);
     ini_set('session.use_only_cookies', 1);
+    ini_set('session.cookie_samesite', 'Lax');
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)) {
+        ini_set('session.cookie_secure', 1);
+    }
     session_start();
 }
 
@@ -84,4 +110,5 @@ if (ob_get_level() === 0) {
 }
 
 // Helper constant for site title
-define('SITE_NAME', 'SAYAK LIBRARY');
+define('SITE_NAME', 'DAKSHINESWAR SHAYAK LIBRARY');
+

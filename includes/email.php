@@ -27,14 +27,21 @@ function send_library_email(string $recipientEmail, string $subject, string $htm
         if (@mail($recipientEmail, $subject, $htmlBody, $headers)) {
             $sentSuccess = true;
         } else {
-            // For local XAMPP testing, log message safely
-            $sentSuccess = true; 
-            $errorMessage = "Local XAMPP environment simulated email dispatch.";
+            if (defined('APP_ENV') && APP_ENV === 'development') {
+                // For local development simulation
+                $sentSuccess = true; 
+                $errorMessage = "Local development simulated email dispatch.";
+            } else {
+                // In production, log actual failure
+                $sentSuccess = false;
+                $errorMessage = "PHP mail() execution returned false. Check cPanel mail/sendmail configuration.";
+            }
         }
     } catch (Exception $e) {
         $sentSuccess = false;
         $errorMessage = $e->getMessage();
     }
+
 
     // Log email dispatch to database
     try {

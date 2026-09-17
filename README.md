@@ -87,21 +87,31 @@ http://localhost/sayak-library/
 4. Assign **ALL PRIVILEGES** to the user for the created database.
 5. Go to phpMyAdmin in cPanel and import `database.sql`.
 
-### Step 3: Update `includes/config.php`
-Edit `includes/config.php` with your cPanel database details:
+### Step 3: Configure Database via `includes/config.local.php`
+1. Copy or rename `includes/config.local.php.example` to `includes/config.local.php`.
+2. Edit `includes/config.local.php` with your cPanel database details:
 ```php
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'username_sayak_library');
-define('DB_USER', 'username_sayak_user');
-define('DB_PASS', 'YourStrongPassword123!');
+define('DB_NAME', 'yourcpanel_sayak_library');
+define('DB_USER', 'yourcpanel_dbuser');
+define('DB_PASS', 'YourSecurePasswordHere');
+define('DB_PORT', 3306);
+define('DB_CHARSET', 'utf8mb4');
+
+define('APP_ENV', 'production');
+```
+*(Optional)* If you are running on a custom domain or subdomain, you can also define `BASE_URL`:
+```php
+define('BASE_URL', 'https://yourdomain.com/');
 ```
 
 ### Step 4: File Permissions
 Ensure the following directory permissions are set in cPanel File Manager:
-- Folders: `0755`
-- PHP / Web Files: `0644`
-- `private_pdfs/` folder: `0755` (protected by `.htaccess`)
-- `uploads/covers/`, `uploads/gallery/`, `uploads/members/`: `0755` (Writable)
+- Folders / Directories: `0755`
+- PHP & Web Files: `0644`
+- `private_pdfs/`: `0755` (Protected against web downloads by `.htaccess`)
+- `includes/` and `logs/`: `0755` (Protected by `.htaccess`)
+- `uploads/` subdirectories (`covers/`, `gallery/`, `members/`, `governing_body/`, `documents/`, `forms/`): `0755` (Writable)
 
 ---
 
@@ -110,11 +120,19 @@ Ensure the following directory permissions are set in cPanel File Manager:
 To automate daily fine calculations, membership expiry updates, and 15-day restriction flagging:
 
 1. Log in to cPanel -> **Cron Jobs**.
-2. Set Common Settings: **Once Per Day (0 0 * * *)**
-3. Enter Command:
+2. Set Schedule: **Once Per Day (0 0 * * *)** (Midnight daily).
+3. Enter CLI Command:
    ```bash
-   php /home/yourcpanelusername/public_html/sayak-library/cron/daily_cron.php >/dev/null 2>&1
+   php /home/yourcpanelusername/public_html/cron/daily_cron.php >/dev/null 2>&1
    ```
+   *(Replace `/home/yourcpanelusername/public_html/` with your actual cPanel home directory path).*
+
+4. **Alternative (HTTP Cron / Webhook)**:
+   If using an external cron monitor or cPanel curl/wget command:
+   ```bash
+   curl -s "https://yourdomain.com/cron/daily_cron.php?key=YOUR_CRON_SECRET_KEY" >/dev/null 2>&1
+   ```
+
 
 ---
 

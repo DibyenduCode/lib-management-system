@@ -77,9 +77,9 @@ $isDashboard = (
 
                 <div class="col-lg-3 col-md-4">
                     <h5>Contact Info</h5>
-                    <p class="text-secondary small mb-2"><i class="fas fa-map-marker-alt text-warning me-2"></i> <?= escape(get_setting('address', '124 Academic Avenue, College Street, Kolkata, West Bengal - 700073')) ?></p>
-                    <p class="text-secondary small mb-2"><i class="fas fa-phone text-warning me-2"></i> <?= escape(get_setting('phone', '+91 33 2241 8900 / +91 98300 12345')) ?></p>
-                    <p class="text-secondary small mb-2"><i class="fas fa-envelope text-warning me-2"></i> <?= escape(get_setting('email', 'info@sayaklibrary.org')) ?></p>
+                    <p class="text-secondary small mb-2"><i class="fas fa-map-marker-alt text-warning me-2"></i> <?= escape(get_setting('address', '11, Nepal Chandra Chatterjee Street, Ariadaha, Kolkata - 700057')) ?></p>
+                    <p class="text-secondary small mb-2"><i class="fas fa-phone text-warning me-2"></i> <?= escape(get_setting('phone', '7595929232, 8420011218')) ?></p>
+                    <p class="text-secondary small mb-2"><i class="fas fa-envelope text-warning me-2"></i> <?= escape(get_setting('email', 'dakshineswarshayak1997@gmail.com')) ?></p>
                     <p class="text-secondary small mb-0"><i class="fas fa-clock text-warning me-2"></i> <?= escape(get_setting('opening_hours', 'Monday - Saturday: 9:00 AM - 7:00 PM | Sunday: Closed')) ?></p>
                 </div>
             </div>
@@ -87,10 +87,9 @@ $isDashboard = (
             <div class="footer-bottom text-center">
                 <div class="row align-items-center">
                     <div class="col-md-6 text-md-start mb-2 mb-md-0">
-                        <p class="mb-0 text-secondary small">&copy; <?= date('Y') ?> <strong><?= escape(get_setting('library_name', 'SAYAK LIBRARY')) ?></strong>. All Rights Reserved.</p>
+                        <p class="mb-0 text-secondary small">&copy; <?= date('Y') ?> <strong><?= escape(get_setting('library_name', 'DAKSHINESWAR SHAYAK LIBRARY')) ?></strong>. All Rights Reserved.</p>
                     </div>
                     <div class="col-md-6 text-md-end">
-                        <small><a href="<?= BASE_URL ?>login.php" class="text-secondary me-3">Staff / Admin Login</a></small>
                         <small><a href="<?= BASE_URL ?>rules.php" class="text-secondary">Library Terms</a></small>
                     </div>
                 </div>

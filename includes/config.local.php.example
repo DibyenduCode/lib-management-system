@@ -1,0 +1,33 @@
+<?php
+/**
+ * SAYAK LIBRARY - Local / cPanel Configuration Override
+ * 
+ * Instructions for cPanel Deployment:
+ * 1. Duplicate or copy this file to 'config.local.php' in the 'includes/' directory.
+ * 2. Fill in your cPanel MySQL Database credentials below.
+ * 3. Save the file. It will automatically override the default credentials.
+ */
+
+// Prevent direct script access
+if (count(get_included_files()) == 1) {
+    header("HTTP/1.1 403 Forbidden");
+    exit("Direct access forbidden.");
+}
+
+// cPanel MySQL Database Credentials
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'yourcpanel_sayak_library');
+define('DB_USER', 'yourcpanel_dbuser');
+define('DB_PASS', 'YourSecurePasswordHere');
+define('DB_PORT', 3306);
+define('DB_CHARSET', 'utf8mb4');
+
+// Production Environment Settings ('production' or 'development')
+define('APP_ENV', 'production');
+
+// Optional Custom BASE_URL Override (Uncomment if needed, e.g. for custom domain / subdomain)
+// define('BASE_URL', 'https://yourdomain.com/');
+
+// Optional Secret Token for Remote Cron Execution (e.g. ?key=YOUR_CRON_SECRET)
+// define('CRON_SECRET_KEY', 'change_this_to_a_random_secure_string');
+

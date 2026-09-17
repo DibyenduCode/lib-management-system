@@ -4,8 +4,9 @@
 -- Database Name: sayak_library
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS `sayak_library` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `sayak_library`;
+-- (Optional for local CLI) If creating database outside cPanel, uncomment the next 2 lines:
+-- CREATE DATABASE IF NOT EXISTS `sayak_library` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE `sayak_library`;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -38,12 +39,12 @@ CREATE TABLE `system_settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES
-('library_name', 'SAYAK LIBRARY'),
-('established_year', '1995'),
-('registration_no', 'SL/WB/2023/8892'),
-('address', '124 Academic Avenue, College Street, Kolkata, West Bengal - 700073'),
-('phone', '+91 33 2241 8900 / +91 98300 12345'),
-('email', 'info@sayaklibrary.org'),
+('library_name', 'DAKSHINESWAR SHAYAK LIBRARY'),
+('established_year', '1996'),
+('registration_no', 'S/87920 of 1997-1998'),
+('address', '11, Nepal Chandra Chatterjee Street, Ariadaha, Kolkata - 700057'),
+('phone', '7595929232, 8420011218'),
+('email', 'dakshineswarshayak1997@gmail.com'),
 ('opening_hours', 'Monday - Saturday: 9:00 AM - 7:00 PM | Sunday: Closed'),
 ('fine_per_day', '5.00'),
 ('grace_period_days', '2'),
@@ -53,9 +54,10 @@ INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES
 ('social_twitter', 'https://twitter.com/sayaklibrary'),
 ('social_instagram', 'https://instagram.com/sayaklibrary'),
 ('social_youtube', 'https://youtube.com/@sayaklibrary'),
-('phone_secondary', '+91 98300 12345'),
-('email_support', 'support@sayaklibrary.org'),
-('map_embed_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3684.128795764048!2d88.3638927!3d22.574343!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a0277ab54a83b27%3A0xb36384a56828551!2sCollege%20St%2C%20Kolkata%2C%20West%20Bengal!5e0!3m2!1sen!2sin!4v1680000000000!5m2!1sen!2sin'),
+('phone_secondary', '8420011218'),
+('email_support', 'dakshineswarshayak1997@gmail.com'),
+('map_embed_url', 'https://maps.google.com/maps?q=Dakshineswar+Shayak+Library,+11,+Nepal+Chandra+Chatterjee+St,+Ariadaha,+Kolkata,+West+Bengal+700057&output=embed'),
+('google_maps_link', 'https://maps.app.goo.gl/cJvtR8DGniZ4VaM7A'),
 ('donate_appeal_title', 'Donate to Sayak Library'),
 ('donate_appeal_desc', 'Your contributions directly support book restoration, student scholarships, rare manuscript preservation, and e-learning resources.'),
 ('donate_bank_name', 'State Bank of India (College Street Branch)'),
@@ -68,7 +70,12 @@ INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES
 ('smtp_pass', 'smtp_password_secret'),
 ('smtp_from_name', 'Sayak Library Administration'),
 ('smtp_from_email', 'no-reply@sayaklibrary.org'),
-('cron_last_run', '2026-09-13 00:00:00');
+('cron_last_run', '2026-09-13 00:00:00'),
+('governance_pdf', 'uploads/documents/memorandum_of_association_dakshineswar_shayak.pdf'),
+('registered_office', '18/1, Ramgarh Road, Calcutta - 700 076'),
+('reg_date', '27 August 1997'),
+('cert_copy_date', '03 July 2023'),
+('cert_ref_no', '79AB 299217');
 
 -- ------------------------------------------------------------
 -- Table: users
@@ -92,7 +99,7 @@ CREATE TABLE `users` (
 -- Password: Dibyendu@@123
 -- ------------------------------------------------------------
 INSERT INTO `users` (`id`, `role_id`, `full_name`, `email`, `password`, `status`) VALUES
-(1, 1, 'Super Administrator', 'todkkhaskel@gmail.com', '$2y$10$OKojRTCD3ySlCLj4KRvsxOgcwVS2OKJUuuuXupl0EwNxFnQX41hji', 'Active');
+(1, 1, 'Super Administrator', 'todkkhaskel@gmail.com', '$2y$10$D2n04xRoNypBcCyapYpjvOjMqOLHWtDZrAfVjeT7yxbcM4QanD81W', 'Active');
 
 -- ------------------------------------------------------------
 -- Table: members
@@ -560,6 +567,7 @@ CREATE TABLE `governing_body_members` (
   `designation` VARCHAR(150) NOT NULL,
   `committee_type` VARCHAR(50) NOT NULL DEFAULT 'Governing Body',
   `description` TEXT DEFAULT NULL,
+  `bio` TEXT DEFAULT NULL,
   `photo` VARCHAR(255) DEFAULT NULL,
   `icon` VARCHAR(50) DEFAULT 'fa-user-tie',
   `sort_order` INT NOT NULL DEFAULT 0,
@@ -568,19 +576,46 @@ CREATE TABLE `governing_body_members` (
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `governing_body_members` (`id`, `name`, `designation`, `committee_type`, `description`, `icon`, `sort_order`, `status`) VALUES
-(1, 'Anjan Basu', 'President', 'Governing Body', 'President, Dakshineswar Shayak Library Governing Body.', 'fa-user-tie', 1, 'Active'),
-(2, 'Pallab Adhikary', 'Vice President', 'Governing Body', 'Vice President, Dakshineswar Shayak Library Governing Body.', 'fa-user-shield', 2, 'Active'),
-(3, 'Sourav chandra Majee', 'Secretary', 'Governing Body', 'Secretary & Executive Officer, Dakshineswar Shayak Library.', 'fa-user-graduate', 3, 'Active'),
-(4, 'Sudip Kumar Denre', 'Assistant Secretary', 'Governing Body', 'Assistant Secretary, Administration & Member Affairs.', 'fa-user-cog', 4, 'Active'),
-(5, 'Lakshmi Denre', 'Assistant Secretary', 'Governing Body', 'Assistant Secretary, Operational & Cultural Coordination.', 'fa-user-cog', 5, 'Active'),
-(6, 'Arobinda Dutta', 'Treasurer', 'Governing Body', 'Treasurer & Finance Controller, Dakshineswar Shayak Library.', 'fa-coins', 6, 'Active'),
-(7, 'Abhimanyu Ganguly', 'Assistant Treasurer', 'Governing Body', 'Assistant Treasurer & Accounts Auditor.', 'fa-calculator', 7, 'Active'),
-(8, 'Sujit Panja', 'Working Committee Member', 'Working Committee', 'Library Operations, Program Coordination & Community Support.', 'fa-user-check', 11, 'Active'),
-(9, 'Diptesh Manna', 'Working Committee Member', 'Working Committee', 'Catalog Logistics, Book Preservation & Youth Engagement.', 'fa-user-check', 12, 'Active'),
-(10, 'Shayari Mondal', 'Working Committee Member', 'Working Committee', 'Reading Hall Assistance, Digital Archive & Patron Relations.', 'fa-user-check', 13, 'Active'),
-(11, 'Aishi Mitra Mustafi', 'Working Committee Member', 'Working Committee', 'Academic Outreach, Event Management & Student Resources.', 'fa-user-check', 14, 'Active'),
-(12, 'Anyasa Roy', 'Working Committee Member', 'Working Committee', 'Library Activities, Membership Desk & Educational Initiatives.', 'fa-user-check', 15, 'Active'),
-(13, '(Vacant)', 'Working Committee Member', 'Working Committee', 'Position to be filled / updated by administrator.', 'fa-user-plus', 16, 'Active');
+INSERT INTO `governing_body_members` (`id`, `name`, `designation`, `committee_type`, `description`, `bio`, `icon`, `sort_order`, `status`) VALUES
+(1, 'Anjan Basu', 'President', 'Governing Body', 'President, Dakshineswar Shayak Library Governing Body.', 'Distinguished patron and President of the Dakshineswar Shayak Library Governing Body.\r\n\r\nWith over 25 years of public educational leadership, Sri Anjan Basu has spearheaded library expansion, student textbook distribution drives, and community welfare programs. Under his presidency, the library has broadened its acquisition of competitive examinations curricula and established dedicated quiet study facilities for college and university aspirants.', 'fa-user-tie', 1, 'Active'),
+(2, 'Pallab Adhikary', 'Vice President', 'Governing Body', 'Vice President, Dakshineswar Shayak Library Governing Body.', NULL, 'fa-user-shield', 2, 'Active'),
+(3, 'Sourav chandra Majee', 'Secretary', 'Governing Body', 'Secretary & Executive Officer, Dakshineswar Shayak Library.', 'Executive Secretary & Administrative Officer of Dakshineswar Shayak Library.\r\n\r\nSourav chandra Majee oversees institutional administration, member services, donor engagement, and digital archive preservation. He coordinates between the Governing Body and Working Committee to ensure smooth daily operations, timely acquisition of university course texts, and seamless lending services for students across North 24 Parganas and Kolkata.', 'fa-user-graduate', 3, 'Active'),
+(4, 'Sudip Kumar Denre', 'Assistant Secretary', 'Governing Body', 'Assistant Secretary, Administration & Member Affairs.', NULL, 'fa-user-cog', 4, 'Active'),
+(5, 'Lakshmi Denre', 'Assistant Secretary', 'Governing Body', 'Assistant Secretary, Operational & Cultural Coordination.', NULL, 'fa-user-cog', 5, 'Active'),
+(6, 'Arobinda Dutta', 'Treasurer', 'Governing Body', 'Treasurer & Finance Controller, Dakshineswar Shayak Library.', NULL, 'fa-coins', 6, 'Active'),
+(7, 'Abhimanyu Ganguly', 'Assistant Treasurer', 'Governing Body', 'Assistant Treasurer & Accounts Auditor.', NULL, 'fa-calculator', 7, 'Active'),
+(8, 'Sujit Panja', 'Working Committee Member', 'Working Committee', 'Library Operations, Program Coordination & Community Support.', NULL, 'fa-user-check', 11, 'Active'),
+(9, 'Diptesh Manna', 'Working Committee Member', 'Working Committee', 'Catalog Logistics, Book Preservation & Youth Engagement.', NULL, 'fa-user-check', 12, 'Active'),
+(10, 'Shayari Mondal', 'Working Committee Member', 'Working Committee', 'Reading Hall Assistance, Digital Archive & Patron Relations.', NULL, 'fa-user-check', 13, 'Active'),
+(11, 'Aishi Mitra Mustafi', 'Working Committee Member', 'Working Committee', 'Academic Outreach, Event Management & Student Resources.', NULL, 'fa-user-check', 14, 'Active'),
+(12, 'Anyasa Roy', 'Working Committee Member', 'Working Committee', 'Library Activities, Membership Desk & Educational Initiatives.', NULL, 'fa-user-check', 15, 'Active'),
+-- ------------------------------------------------------------
+-- Table: academic_collaborations
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS `academic_collaborations`;
+CREATE TABLE `academic_collaborations` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `partner_name` VARCHAR(255) NOT NULL,
+  `partner_subtitle` VARCHAR(255) DEFAULT NULL,
+  `partner_logo` VARCHAR(255) DEFAULT NULL,
+  `mou_title` VARCHAR(255) NOT NULL,
+  `mou_ref_no` VARCHAR(100) DEFAULT NULL,
+  `signed_date` DATE DEFAULT NULL,
+  `validity_period` VARCHAR(100) DEFAULT '3 Years',
+  `partner_signatory` VARCHAR(255) DEFAULT NULL,
+  `library_signatory` VARCHAR(255) DEFAULT NULL,
+  `witness_details` VARCHAR(255) DEFAULT NULL,
+  `summary_text` TEXT DEFAULT NULL,
+  `objectives` TEXT DEFAULT NULL,
+  `scope_modalities` TEXT DEFAULT NULL,
+  `mou_pdf` VARCHAR(255) DEFAULT NULL,
+  `status` ENUM('Active', 'Expired', 'Draft') NOT NULL DEFAULT 'Active',
+  `sort_order` INT NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `academic_collaborations` (`id`, `partner_name`, `partner_subtitle`, `partner_logo`, `mou_title`, `mou_ref_no`, `signed_date`, `validity_period`, `partner_signatory`, `library_signatory`, `witness_details`, `summary_text`, `objectives`, `scope_modalities`, `mou_pdf`, `status`, `sort_order`) VALUES
+(1, 'Hiralal Mazumdar Memorial College for Women', 'Affiliated under West Bengal State University (WBSU) • Established 1959 • Dakshineswar, Kolkata - 700 035', 'hmmc_college_logo.jpg', 'Bilateral Memorandum of Understanding (MOU) on Library Services', '73AB 065674', '2022-05-24', '3 Years (Subject to mutual renewal)', 'Dr. Soma Ghosh, Principal & Secretary', 'Pallab Adhikary, Secretary', 'Coordinator, IQAC (HMMC) & Sourav Chandra Maju (Shayak Library)', 'Bilateral library services agreement to expand reference reading for undergraduate women students, facilitate mutual book study visits, and receive academic syllabus textbooks from the college.', 'Promote Library Culture: Educate college students and library users on the importance of libraries in an education system.\nResource Utilization: Increase awareness and active circulation of specialized academic syllabi and reference collections.\nInformed Student Body: Foster a vibrant, community-centered academic environment supporting undergraduate women researchers.', 'Mutual Reading Visits: Scheduled reciprocal visits on designated days of the week by library members and students to study, read, and consult reference materials on site.\nFemale Student Access: Dedicated reading hall access provided to female students of both institutions, ensuring a safe, supportive, and resourceful study haven.\nTextbook Donations: College library donates curriculum textbooks, syllabi reference works, and academic volumes as per availability.\nInstitutional Coordination: Both parties assign dedicated liaison coordinators under IQAC and Library Council.', 'mou_hiralal_mazumdar_memorial_college_for_women.pdf', 'Active', 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

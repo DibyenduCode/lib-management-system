@@ -20,8 +20,13 @@ $tickerNotice = $tickerStmt->fetch();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= isset($pageTitle) ? escape($pageTitle) . ' - ' : '' ?><?= escape(get_setting('library_name', 'SAYAK LIBRARY')) ?></title>
-    <meta name="description" content="SAYAK LIBRARY - Premier educational and public digital library system offering vast book collections, e-learning resources, and membership programs.">
+    <title><?= isset($pageTitle) ? escape($pageTitle) . ' - ' : '' ?><?= escape(get_setting('library_name', 'DAKSHINESWAR SHAYAK LIBRARY')) ?></title>
+    <meta name="description" content="DAKSHINESWAR SHAYAK LIBRARY - Premier educational and public digital library system offering vast textbook collections, e-learning resources, and membership programs.">
+    
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>assets/images/favicon.png">
+    <link rel="shortcut icon" href="<?= BASE_URL ?>favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="<?= BASE_URL ?>assets/images/favicon.png">
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -75,7 +80,7 @@ if ($currentUser) {
             <div class="d-flex align-items-center">
                 <a href="<?= $dashboardHomeUrl ?>" class="navbar-brand d-flex align-items-center me-3 py-0 text-dark">
                     <img src="<?= $logoUrl ?>" alt="Sayak Logo" class="rounded-circle bg-white p-1 me-2 border shadow-sm" style="width: 44px; height: 44px; object-fit: cover;">
-                    <span class="font-serif fw-bold text-dark fs-5 tracking-wide" style="color: #0F172A !important;"><?= escape(get_setting('library_name', 'SAYAK LIBRARY')) ?></span>
+                    <span class="font-serif fw-bold text-dark fs-5 tracking-wide" style="color: #0F172A !important;"><?= escape(get_setting('library_name', 'DAKSHINESWAR SHAYAK LIBRARY')) ?></span>
                 </a>
                 <?php
                 $roleBadgeClass = 'bg-primary-subtle text-primary border-primary-subtle';
@@ -184,9 +189,9 @@ if ($currentUser) {
             <a href="<?= BASE_URL ?>" class="d-flex align-items-center text-decoration-none">
                 <img src="<?= $logoUrl ?>" alt="Sayak Library Logo" class="brand-logo-img me-3">
                 <div>
-                    <h1 class="brand-title"><?= escape(get_setting('library_name', 'SAYAK LIBRARY')) ?></h1>
+                    <h1 class="brand-title"><?= escape(get_setting('library_name', 'DAKSHINESWAR SHAYAK LIBRARY')) ?></h1>
                     <div class="brand-subtitle">
-                        Estd: <?= escape(get_setting('established_year', '1995')) ?> | Reg No: <?= escape(get_setting('registration_no', 'SL/WB/2023/8892')) ?>
+                        Estd: <?= escape(get_setting('established_year', '1996')) ?> | Reg No: <?= escape(get_setting('registration_no', 'S/87920 of 1997-1998')) ?>
                     </div>
                 </div>
             </a>
@@ -297,6 +302,7 @@ if ($currentUser) {
                     <a href="<?= BASE_URL ?>news.php" class="btn btn-light btn-sm text-dark">News</a>
                     <a href="<?= BASE_URL ?>donate.php" class="btn btn-gold btn-sm">Donate</a>
                     <?php if ($currentUser): ?>
+                        <a href="<?= $dashboardHomeUrl ?>" class="btn btn-warning btn-sm text-dark fw-bold"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a>
                         <a href="<?= BASE_URL ?>logout.php" class="btn btn-outline-light btn-sm">Logout</a>
                     <?php else: ?>
                         <a href="<?= BASE_URL ?>login.php" class="btn btn-light btn-sm">Login</a>

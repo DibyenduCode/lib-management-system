@@ -109,31 +109,31 @@ require_once __DIR__ . '/../../includes/header.php';
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold small">Library Name</label>
-                        <input type="text" name="library_name" class="form-control" value="<?= escape(get_setting('library_name', 'SAYAK LIBRARY')) ?>" required>
+                        <input type="text" name="library_name" class="form-control" value="<?= escape(get_setting('library_name', 'DAKSHINESWAR SHAYAK LIBRARY')) ?>" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold small">Established Year</label>
-                        <input type="text" name="established_year" class="form-control" value="<?= escape(get_setting('established_year', '1995')) ?>">
+                        <input type="text" name="established_year" class="form-control" value="<?= escape(get_setting('established_year', '1996')) ?>">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold small">Registration Number</label>
-                        <input type="text" name="registration_no" class="form-control" value="<?= escape(get_setting('registration_no', 'SL/WB/2023/8892')) ?>">
+                        <input type="text" name="registration_no" class="form-control" value="<?= escape(get_setting('registration_no', 'SO087920')) ?>">
                     </div>
                     <div class="col-12">
                         <label class="form-label fw-bold small">Library Address</label>
-                        <textarea name="address" class="form-control" rows="2"><?= escape(get_setting('address', 'College Street, Kolkata')) ?></textarea>
+                        <textarea name="address" class="form-control" rows="2"><?= escape(get_setting('address', '11, Nepal Chandra Chatterjee Street, Ariadaha, Kolkata - 700057')) ?></textarea>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold small">Phone Helpline</label>
-                        <input type="text" name="phone" class="form-control" value="<?= escape(get_setting('phone', '+91 33 2241 8900')) ?>">
+                        <input type="text" name="phone" class="form-control" value="<?= escape(get_setting('phone', '7595929232, 8420011218')) ?>">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold small">Official Email</label>
-                        <input type="email" name="email" class="form-control" value="<?= escape(get_setting('email', 'info@sayaklibrary.org')) ?>">
+                        <input type="email" name="email" class="form-control" value="<?= escape(get_setting('email', 'dakshineswarshayak1997@gmail.com')) ?>">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold small">Opening Hours</label>
-                        <input type="text" name="opening_hours" class="form-control" value="<?= escape(get_setting('opening_hours', 'Monday - Saturday: 9 AM - 7 PM')) ?>">
+                        <input type="text" name="opening_hours" class="form-control" value="<?= escape(get_setting('opening_hours', 'Monday - Saturday: 9:00 AM - 7:00 PM | Sunday: Closed')) ?>">
                     </div>
                 </div>
             </div>

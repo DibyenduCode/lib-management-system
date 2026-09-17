@@ -28,6 +28,15 @@ require_once __DIR__ . '/includes/header.php';
                     </span>
                 </div>
                 <p class="text-secondary">Distinguished office bearers, executive council members, and operational coordinators of Dakshineswar Shayak Library.</p>
+
+                <div class="alert alert-light border d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 px-3 mb-4" style="background-color: #FFFBF7;">
+                    <span class="small text-muted">
+                        <i class="fas fa-file-contract text-maroon me-1" style="color: #7A0C0C;"></i> Looking for our official registered Memorandum of Association & Society Constitution?
+                    </span>
+                    <a href="<?= BASE_URL ?>governance.php" class="btn btn-outline-maroon btn-sm py-1 font-serif fw-bold" style="font-size: 12px;">
+                        <i class="fas fa-balance-scale me-1"></i> View Registered Deed & PDF
+                    </a>
+                </div>
                 <hr class="my-4">
 
 <?php
@@ -52,9 +61,10 @@ $workingComm = array_filter($allMembers, fn($m) => ($m['committee_type'] ?? '') 
                 <div class="row g-4 mb-5">
                     <?php if (!empty($govBody)): ?>
                         <?php foreach ($govBody as $m): ?>
+                            <?php $hasBio = !empty(trim($m['bio'] ?? '')); ?>
                             <div class="col-md-6">
-                                <div class="card h-100 border p-3 sayak-card shadow-sm">
-                                    <div class="d-flex align-items-center">
+                                <div class="card h-100 border p-3 sayak-card shadow-sm d-flex flex-column justify-content-between">
+                                    <div class="d-flex align-items-start">
                                         <?php if (!empty($m['photo']) && file_exists(ROOT_PATH . 'uploads/governing_body/' . $m['photo'])): ?>
                                             <img src="<?= BASE_URL ?>uploads/governing_body/<?= escape($m['photo']) ?>" alt="<?= escape($m['name']) ?>" class="rounded-circle border border-2 border-maroon shadow-sm me-3 flex-shrink-0" style="width: 65px; height: 65px; object-fit: cover;">
                                         <?php else: ?>
@@ -72,6 +82,14 @@ $workingComm = array_filter($allMembers, fn($m) => ($m['committee_type'] ?? '') 
                                             <?php endif; ?>
                                         </div>
                                     </div>
+                                    <?php if ($hasBio): ?>
+                                        <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                                            <span class="small text-muted" style="font-size: 11px;"><i class="fas fa-id-card text-maroon me-1" style="color: #7A0C0C;"></i> Detailed Profile</span>
+                                            <button type="button" class="btn btn-outline-maroon btn-sm py-1 px-3 rounded-pill fw-bold font-serif" style="font-size: 12px;" onclick='openMemberBioModal(<?= htmlspecialchars(json_encode($m), ENT_QUOTES, 'UTF-8') ?>)'>
+                                                Know More <i class="fas fa-arrow-right ms-1" style="font-size: 10px;"></i>
+                                            </button>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -98,10 +116,13 @@ $workingComm = array_filter($allMembers, fn($m) => ($m['committee_type'] ?? '') 
                 <div class="row g-4">
                     <?php if (!empty($workingComm)): ?>
                         <?php foreach ($workingComm as $m): ?>
-                            <?php $isVacant = (trim($m['name']) === '(Vacant)'); ?>
+                            <?php 
+                            $isVacant = (trim($m['name']) === '(Vacant)'); 
+                            $hasBio = !$isVacant && !empty(trim($m['bio'] ?? ''));
+                            ?>
                             <div class="col-md-6">
-                                <div class="card h-100 border p-3 sayak-card shadow-sm <?= $isVacant ? 'bg-light border-dashed' : '' ?>">
-                                    <div class="d-flex align-items-center">
+                                <div class="card h-100 border p-3 sayak-card shadow-sm d-flex flex-column justify-content-between <?= $isVacant ? 'bg-light border-dashed' : '' ?>">
+                                    <div class="d-flex align-items-start">
                                         <?php if (!empty($m['photo']) && file_exists(ROOT_PATH . 'uploads/governing_body/' . $m['photo'])): ?>
                                             <img src="<?= BASE_URL ?>uploads/governing_body/<?= escape($m['photo']) ?>" alt="<?= escape($m['name']) ?>" class="rounded-circle border border-2 border-maroon shadow-sm me-3 flex-shrink-0" style="width: 65px; height: 65px; object-fit: cover;">
                                         <?php else: ?>
@@ -126,6 +147,14 @@ $workingComm = array_filter($allMembers, fn($m) => ($m['committee_type'] ?? '') 
                                             <?php endif; ?>
                                         </div>
                                     </div>
+                                    <?php if ($hasBio): ?>
+                                        <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                                            <span class="small text-muted" style="font-size: 11px;"><i class="fas fa-id-card text-maroon me-1" style="color: #7A0C0C;"></i> Detailed Profile</span>
+                                            <button type="button" class="btn btn-outline-maroon btn-sm py-1 px-3 rounded-pill fw-bold font-serif" style="font-size: 12px;" onclick='openMemberBioModal(<?= htmlspecialchars(json_encode($m), ENT_QUOTES, 'UTF-8') ?>)'>
+                                                Know More <i class="fas fa-arrow-right ms-1" style="font-size: 10px;"></i>
+                                            </button>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -136,5 +165,83 @@ $workingComm = array_filter($allMembers, fn($m) => ($m['committee_type'] ?? '') 
         </div>
     </div>
 </div>
+
+<!-- ============================================================ -->
+<!-- MODAL: GOVERNING BODY MEMBER PROFILE ("KNOW MORE")          -->
+<!-- ============================================================ -->
+<div class="modal fade" id="govMemberBioModal" tabindex="-1" aria-labelledby="govMemberBioModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+            <div class="p-4 text-white position-relative" style="background: linear-gradient(135deg, #7A0C0C 0%, #4D0505 100%);">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="d-flex align-items-center gap-3">
+                    <div id="modalMemberPhotoWrapper" class="rounded-circle border border-3 border-white bg-white d-flex align-items-center justify-content-center shadow flex-shrink-0" style="width: 75px; height: 75px; overflow: hidden;">
+                        <img id="modalMemberPhoto" src="" alt="Member" class="w-100 h-100 d-none" style="object-fit: cover;">
+                        <i id="modalMemberIcon" class="fas fa-user-tie fa-2x text-maroon" style="color: #7A0C0C;"></i>
+                    </div>
+                    <div>
+                        <span id="modalMemberCommittee" class="badge bg-white text-maroon font-serif px-2 py-1 mb-1" style="color: #7A0C0C; font-size: 11px;">Governing Body</span>
+                        <h4 class="modal-title font-serif fw-bold text-white mb-0" id="modalMemberName">Member Name</h4>
+                        <span id="modalMemberDesignation" class="badge bg-warning-subtle text-warning-emphasis font-serif mt-1" style="font-size: 12px;">Designation</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <div id="modalOverviewBox" class="p-3 bg-white rounded-3 border mb-3 shadow-sm">
+                    <h6 class="text-maroon font-serif fw-bold mb-1" style="color: #7A0C0C;">
+                        <i class="fas fa-briefcase me-2"></i> Role & Institutional Overview
+                    </h6>
+                    <p class="text-muted small mb-0" id="modalMemberDescription"></p>
+                </div>
+                <div class="p-4 bg-white rounded-3 border shadow-sm">
+                    <h6 class="text-maroon font-serif fw-bold mb-3" style="color: #7A0C0C;">
+                        <i class="fas fa-info-circle me-2"></i> Biography & Background Information
+                    </h6>
+                    <div id="modalMemberBio" class="text-dark" style="line-height: 1.8; font-size: 15px; white-space: pre-line;"></div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center">
+                <span class="small text-muted font-serif"><i class="fas fa-landmark text-maroon me-1" style="color: #7A0C0C;"></i> Dakshineswar Shayak Library</span>
+                <button type="button" class="btn btn-secondary btn-sm px-4 font-serif" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openMemberBioModal(m) {
+    document.getElementById('modalMemberName').textContent = m.name || '';
+    document.getElementById('modalMemberDesignation').textContent = m.designation || '';
+    document.getElementById('modalMemberCommittee').textContent = (m.committee_type === 'Working Committee') ? 'Working Committee (কর্মী সমিতি)' : 'Governing Body (পরিচালনা পর্ষদ)';
+    
+    var descBox = document.getElementById('modalOverviewBox');
+    var descEl = document.getElementById('modalMemberDescription');
+    if (m.description && m.description.trim()) {
+        descEl.textContent = m.description;
+        descBox.style.display = 'block';
+    } else {
+        descBox.style.display = 'none';
+    }
+
+    var bioEl = document.getElementById('modalMemberBio');
+    bioEl.textContent = m.bio || 'No additional information entered.';
+
+    var photoImg = document.getElementById('modalMemberPhoto');
+    var iconEl = document.getElementById('modalMemberIcon');
+    if (m.photo) {
+        photoImg.src = '<?= BASE_URL ?>uploads/governing_body/' + m.photo;
+        photoImg.classList.remove('d-none');
+        iconEl.classList.add('d-none');
+    } else {
+        photoImg.src = '';
+        photoImg.classList.add('d-none');
+        iconEl.className = 'fas ' + (m.icon || 'fa-user-tie') + ' fa-2x text-maroon';
+        iconEl.classList.remove('d-none');
+    }
+
+    var modal = new bootstrap.Modal(document.getElementById('govMemberBioModal'));
+    modal.show();
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

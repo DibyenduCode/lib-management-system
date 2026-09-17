@@ -81,6 +81,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             VALUES (?, ?, ?, NOW())
                         ");
                         $insLib->execute([$newUserId, $empCode, $phone]);
+                    } elseif ($roleCode === 'MEMBER') {
+                        $memCode = generate_member_id($db);
+                        $insMem = $db->prepare("
+                            INSERT INTO members (user_id, member_code, mobile, address, membership_status, created_at)
+                            VALUES (?, ?, ?, ?, 'Active', NOW())
+                        ");
+                        $insMem->execute([$newUserId, $memCode, $phone ?: 'Not provided', 'Registered via Admin Panel']);
+                        $newMemberId = (int)$db->lastInsertId();
+
+                        // Assign default active membership plan
+                        $planStmt = $db->query("SELECT id, duration_months FROM membership_plans ORDER BY id ASC LIMIT 1");
+                        $defPlan = $planStmt->fetch();
+                        if ($defPlan) {
+                            $durMonths = (int)($defPlan['duration_months'] ?: 12);
+                            $expDate = date('Y-m-d', strtotime("+{$durMonths} months"));
+                            $db->prepare("
+                                INSERT INTO memberships (member_id, plan_id, start_date, expiry_date, status)
+                                VALUES (?, ?, CURDATE(), ?, 'Active')
+                            ")->execute([$newMemberId, $defPlan['id'], $expDate]);
+                        }
                     }
 
                     log_audit_action($currentUserId, 'SUPER_ADMIN', 'Create User', 'Users', "Created {$roleData['role_name']}: {$fullName} ({$email})");
@@ -147,6 +167,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($targetUser['role_code'] === 'LIBRARIAN') {
                         $lUpdate = $db->prepare("UPDATE librarians SET employee_code = ?, phone = ? WHERE user_id = ?");
                         $lUpdate->execute([$empCode, $phone, $targetUserId]);
+                    } elseif ($targetUser['role_code'] === 'MEMBER') {
+                        $mUpdate = $db->prepare("UPDATE members SET mobile = ? WHERE user_id = ?");
+                        $mUpdate->execute([$phone, $targetUserId]);
                     }
 
                     // If updating current user, refresh session
@@ -551,7 +574,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
                 <div class="modal-body p-4">
                     <div class="alert alert-light border small text-muted mb-4">
-                        <i class="fas fa-info-circle text-primary me-1"></i> You can create multiple <strong>Librarian</strong> accounts for library staff or additional <strong>Super Admin</strong> accounts with executive access.
+                        <i class="fas fa-info-circle text-primary me-1"></i> You can create new <strong>Librarian</strong> staff, registered <strong>Library Members</strong>, or additional <strong>Super Admin</strong> executive accounts.
                     </div>
 
                     <div class="row g-3">
@@ -560,6 +583,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             <select name="role_code" id="newRoleSelect" class="form-select" onchange="toggleLibrarianFields(this.value)" required>
                                 <option value="LIBRARIAN" selected>Librarian (Daily Operations Staff)</option>
                                 <option value="SUPER_ADMIN">Super Admin (Full Administrative Authority)</option>
+                                <option value="MEMBER">Library Member (Borrower / Reader)</option>
                             </select>
                         </div>
 

@@ -1,6 +1,7 @@
 # Environment & Server files
 .env
 *.local
+includes/config.local.php
 
 # System & OS
 .DS_Store
@@ -19,7 +20,15 @@ uploads/gallery/*
 !uploads/gallery/.gitkeep
 uploads/members/*
 !uploads/members/.gitkeep
+uploads/governing_body/*
+!uploads/governing_body/.gitkeep
 
 # Sensitive private PDFs
 private_pdfs/*
 !private_pdfs/.gitkeep
+!private_pdfs/.htaccess
+
+# Application logs (keep folder and .htaccess)
+logs/*.log
+!logs/.htaccess
+

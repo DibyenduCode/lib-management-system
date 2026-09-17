@@ -9,7 +9,7 @@ require_role('SUPER_ADMIN');
 $db = getDB();
 $errors = [];
 $activeTab = sanitize_input($_GET['tab'] ?? 'contact');
-$allowedTabs = ['contact', 'branding', 'rules', 'institutional', 'govbody'];
+$allowedTabs = ['contact', 'branding', 'rules', 'institutional', 'govbody', 'collaborations'];
 if (!in_array($activeTab, $allowedTabs)) {
     $activeTab = 'contact';
 }
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_contact_cms'])) 
     } else {
         $contactKeys = [
             'phone', 'phone_secondary', 'email', 'email_support',
-            'address', 'opening_hours', 'map_embed_url',
+            'address', 'opening_hours', 'map_embed_url', 'google_maps_link',
             'social_facebook', 'social_twitter', 'social_instagram', 'social_youtube'
         ];
 
@@ -147,13 +147,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_institutional_cm
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $errors[] = "Security token validation failed.";
     } else {
+        // Handle Governance PDF File Upload
+        if (isset($_FILES['governance_pdf_file']) && $_FILES['governance_pdf_file']['error'] === UPLOAD_ERR_OK) {
+            $tmpName = $_FILES['governance_pdf_file']['tmp_name'];
+            $origName = basename($_FILES['governance_pdf_file']['name']);
+            $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+            if ($ext !== 'pdf') {
+                $errors[] = "Governance Document must be a valid PDF file.";
+            } else {
+                $uploadDir = ROOT_PATH . 'uploads/documents/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                $candidatePdf = 'memorandum_of_association_' . time() . '.pdf';
+                if (move_uploaded_file($tmpName, $uploadDir . $candidatePdf)) {
+                    $pdfRel = 'uploads/documents/' . $candidatePdf;
+                    $stmt = $db->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('governance_pdf', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+                    $stmt->execute([$pdfRel]);
+                } else {
+                    $errors[] = "Failed to upload Governance PDF file to disk.";
+                }
+            }
+        }
+
         $instKeys = [
             // Our Journey
             'journey_lead', 'journey_story_content', 'journey_mission',
             // Governance
-            'governance_lead', 'gov_comp_title', 'gov_comp_desc', 'gov_audit_title', 'gov_audit_desc', 'gov_sec_title', 'gov_sec_desc',
-            // Academic Collaborations
-            'collab_lead', 'collab_1_title', 'collab_1_desc', 'collab_2_title', 'collab_2_desc', 'collab_3_title', 'collab_3_desc', 'collab_4_title', 'collab_4_desc',
+            'governance_lead', 'registration_no', 'established_year', 'registered_office',
+            'reg_date', 'cert_copy_date', 'cert_ref_no',
+            'gov_comp_title', 'gov_comp_desc', 'gov_audit_title', 'gov_audit_desc', 'gov_sec_title', 'gov_sec_desc',
+            // Academic Collaborations Lead
+            'collab_lead',
             // Donation Appeal & Bank Details
             'donate_appeal_title', 'donate_appeal_desc', 'donate_bank_name', 'donate_account_no', 'donate_ifsc', 'donate_upi_id'
         ];
@@ -167,8 +190,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_institutional_cm
         }
 
         if (empty($errors)) {
-            log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Update Institutional CMS', 'CMS', "Institutional Journey, Governance, Collaborations, and Donation info updated.");
-            set_flash_message('success', 'Institutional pages content and donation bank details updated successfully!');
+            log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Update Institutional CMS', 'CMS', "Institutional Journey, Governance, and Donation info updated.");
+            set_flash_message('success', 'Institutional pages content, governance details, and PDF updated successfully!');
             header("Location: " . BASE_URL . "admin/cms/index.php?tab=institutional");
             exit();
         }
@@ -189,6 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_gov_member'])) {
         $committeeType = sanitize_input($_POST['committee_type'] ?? 'Governing Body');
         if (!in_array($committeeType, ['Governing Body', 'Working Committee'])) $committeeType = 'Governing Body';
         $description = sanitize_input($_POST['description'] ?? '');
+        $bio = trim($_POST['bio'] ?? '');
         $icon = sanitize_input($_POST['icon'] ?? 'fa-user-tie');
         $sortOrder = (int)($_POST['sort_order'] ?? 0);
         $status = sanitize_input($_POST['status'] ?? 'Active');
@@ -239,23 +263,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_gov_member'])) {
                     if ($oldPhoto && file_exists(ROOT_PATH . 'uploads/governing_body/' . $oldPhoto)) {
                         @unlink(ROOT_PATH . 'uploads/governing_body/' . $oldPhoto);
                     }
-                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, committee_type = ?, description = ?, icon = ?, sort_order = ?, status = ?, photo = ? WHERE id = ?")
-                       ->execute([$name, $designation, $committeeType, $description, $icon, $sortOrder, $status, $newPhotoFilename, $mId]);
+                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, committee_type = ?, description = ?, bio = ?, icon = ?, sort_order = ?, status = ?, photo = ? WHERE id = ?")
+                       ->execute([$name, $designation, $committeeType, $description, $bio, $icon, $sortOrder, $status, $newPhotoFilename, $mId]);
                 } elseif ($removePhoto) {
                     if ($oldPhoto && file_exists(ROOT_PATH . 'uploads/governing_body/' . $oldPhoto)) {
                         @unlink(ROOT_PATH . 'uploads/governing_body/' . $oldPhoto);
                     }
-                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, committee_type = ?, description = ?, icon = ?, sort_order = ?, status = ?, photo = NULL WHERE id = ?")
-                       ->execute([$name, $designation, $committeeType, $description, $icon, $sortOrder, $status, $mId]);
+                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, committee_type = ?, description = ?, bio = ?, icon = ?, sort_order = ?, status = ?, photo = NULL WHERE id = ?")
+                       ->execute([$name, $designation, $committeeType, $description, $bio, $icon, $sortOrder, $status, $mId]);
                 } else {
-                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, committee_type = ?, description = ?, icon = ?, sort_order = ?, status = ? WHERE id = ?")
-                       ->execute([$name, $designation, $committeeType, $description, $icon, $sortOrder, $status, $mId]);
+                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, committee_type = ?, description = ?, bio = ?, icon = ?, sort_order = ?, status = ? WHERE id = ?")
+                       ->execute([$name, $designation, $committeeType, $description, $bio, $icon, $sortOrder, $status, $mId]);
                 }
                 log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Edit Gov Member', 'GoverningBody', "Updated: {$name} ({$designation} - {$committeeType})");
                 set_flash_message('success', "Member '{$name}' updated successfully.");
             } else {
-                $ins = $db->prepare("INSERT INTO governing_body_members (name, designation, committee_type, description, photo, icon, sort_order, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-                $ins->execute([$name, $designation, $committeeType, $description, $newPhotoFilename, $icon, $sortOrder, $status]);
+                $ins = $db->prepare("INSERT INTO governing_body_members (name, designation, committee_type, description, bio, photo, icon, sort_order, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+                $ins->execute([$name, $designation, $committeeType, $description, $bio, $newPhotoFilename, $icon, $sortOrder, $status]);
                 log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Add Gov Member', 'GoverningBody', "Added: {$name} ({$designation} - {$committeeType})");
                 set_flash_message('success', "New member '{$name}' added successfully.");
             }
@@ -290,12 +314,151 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_gov_member']))
     }
 }
 
+// ============================================================
+// 7. POST ACTION: SAVE / EDIT ACADEMIC COLLABORATION
+// ============================================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_collaboration'])) {
+    $activeTab = 'collaborations';
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $errors[] = "Security token validation failed.";
+    } else {
+        $cId = (int)($_POST['collaboration_id'] ?? 0);
+        $partnerName = sanitize_input($_POST['partner_name'] ?? '');
+        $partnerSubtitle = sanitize_input($_POST['partner_subtitle'] ?? '');
+        $mouTitle = sanitize_input($_POST['mou_title'] ?? '');
+        $mouRefNo = sanitize_input($_POST['mou_ref_no'] ?? '');
+        $signedDate = !empty($_POST['signed_date']) ? $_POST['signed_date'] : null;
+        $validityPeriod = sanitize_input($_POST['validity_period'] ?? '3 Years');
+        $partnerSignatory = sanitize_input($_POST['partner_signatory'] ?? '');
+        $librarySignatory = sanitize_input($_POST['library_signatory'] ?? '');
+        $witnessDetails = sanitize_input($_POST['witness_details'] ?? '');
+        $summaryText = trim($_POST['summary_text'] ?? '');
+        $objectives = trim($_POST['objectives'] ?? '');
+        $scopeModalities = trim($_POST['scope_modalities'] ?? '');
+        $sortOrder = (int)($_POST['sort_order'] ?? 0);
+        $status = sanitize_input($_POST['status'] ?? 'Active');
+        if (!in_array($status, ['Active', 'Expired', 'Draft'])) $status = 'Active';
+
+        if (empty($partnerName)) $errors[] = "Partner Institution Name is required.";
+        if (empty($mouTitle)) $errors[] = "MOU Agreement Title is required.";
+
+        // Handle Partner Logo Upload
+        $newLogoFilename = null;
+        if (isset($_FILES['partner_logo']) && $_FILES['partner_logo']['error'] === UPLOAD_ERR_OK) {
+            $tmpName = $_FILES['partner_logo']['tmp_name'];
+            $origName = basename($_FILES['partner_logo']['name']);
+            $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+                $errors[] = "Invalid logo format. Allowed formats: JPG, PNG, WEBP.";
+            } else {
+                $uploadDir = ROOT_PATH . 'uploads/documents/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                $candLogo = 'partner_logo_' . time() . '_' . rand(100, 999) . '.' . $ext;
+                if (move_uploaded_file($tmpName, $uploadDir . $candLogo)) {
+                    $newLogoFilename = $candLogo;
+                } else {
+                    $errors[] = "Failed to save partner logo to disk.";
+                }
+            }
+        }
+
+        // Handle MOU PDF Upload
+        $newPdfFilename = null;
+        if (isset($_FILES['mou_pdf']) && $_FILES['mou_pdf']['error'] === UPLOAD_ERR_OK) {
+            $tmpName = $_FILES['mou_pdf']['tmp_name'];
+            $origName = basename($_FILES['mou_pdf']['name']);
+            $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+            if ($ext !== 'pdf') {
+                $errors[] = "MOU document must be a valid PDF file.";
+            } else {
+                $uploadDir = ROOT_PATH . 'uploads/documents/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                $candPdf = 'mou_' . time() . '_' . rand(100, 999) . '.pdf';
+                if (move_uploaded_file($tmpName, $uploadDir . $candPdf)) {
+                    $newPdfFilename = $candPdf;
+                } else {
+                    $errors[] = "Failed to save MOU PDF document to disk.";
+                }
+            }
+        }
+
+        if (empty($errors)) {
+            if ($cId > 0) {
+                // Fetch existing files for preservation
+                $oldStmt = $db->prepare("SELECT partner_logo, mou_pdf FROM academic_collaborations WHERE id = ?");
+                $oldStmt->execute([$cId]);
+                $oldData = $oldStmt->fetch();
+
+                $logoToSave = $newLogoFilename ?: ($oldData['partner_logo'] ?? null);
+                $pdfToSave = $newPdfFilename ?: ($oldData['mou_pdf'] ?? null);
+
+                $db->prepare("
+                    UPDATE academic_collaborations SET 
+                        partner_name = ?, partner_subtitle = ?, mou_title = ?, mou_ref_no = ?,
+                        signed_date = ?, validity_period = ?, partner_signatory = ?, library_signatory = ?,
+                        witness_details = ?, summary_text = ?, objectives = ?, scope_modalities = ?,
+                        sort_order = ?, status = ?, partner_logo = ?, mou_pdf = ?
+                    WHERE id = ?
+                ")->execute([
+                    $partnerName, $partnerSubtitle, $mouTitle, $mouRefNo,
+                    $signedDate, $validityPeriod, $partnerSignatory, $librarySignatory,
+                    $witnessDetails, $summaryText, $objectives, $scopeModalities,
+                    $sortOrder, $status, $logoToSave, $pdfToSave, $cId
+                ]);
+                log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Edit Academic Collaboration', 'CMS', "Updated: {$partnerName}");
+                set_flash_message('success', "Academic Collaboration with '{$partnerName}' updated successfully.");
+            } else {
+                $db->prepare("
+                    INSERT INTO academic_collaborations (
+                        partner_name, partner_subtitle, mou_title, mou_ref_no,
+                        signed_date, validity_period, partner_signatory, library_signatory,
+                        witness_details, summary_text, objectives, scope_modalities,
+                        sort_order, status, partner_logo, mou_pdf
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ")->execute([
+                    $partnerName, $partnerSubtitle, $mouTitle, $mouRefNo,
+                    $signedDate, $validityPeriod, $partnerSignatory, $librarySignatory,
+                    $witnessDetails, $summaryText, $objectives, $scopeModalities,
+                    $sortOrder, $status, $newLogoFilename, $newPdfFilename
+                ]);
+                log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Add Academic Collaboration', 'CMS', "Added: {$partnerName}");
+                set_flash_message('success', "New Academic Collaboration with '{$partnerName}' added successfully.");
+            }
+            header("Location: " . BASE_URL . "admin/cms/index.php?tab=collaborations");
+            exit();
+        }
+    }
+}
+
+// ============================================================
+// 8. POST ACTION: DELETE ACADEMIC COLLABORATION
+// ============================================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_collaboration'])) {
+    $activeTab = 'collaborations';
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $errors[] = "Security token validation failed.";
+    } else {
+        $delId = (int)$_POST['collaboration_id'];
+        $oldStmt = $db->prepare("SELECT partner_name FROM academic_collaborations WHERE id = ?");
+        $oldStmt->execute([$delId]);
+        $cName = $oldStmt->fetchColumn();
+        if ($cName) {
+            $db->prepare("DELETE FROM academic_collaborations WHERE id = ?")->execute([$delId]);
+            log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Delete Academic Collaboration', 'CMS', "Deleted: {$cName}");
+            set_flash_message('info', "Academic collaboration with '{$cName}' has been removed.");
+        }
+        header("Location: " . BASE_URL . "admin/cms/index.php?tab=collaborations");
+        exit();
+    }
+}
+
 // Current Logo
 $currentLogo = get_setting('site_logo', '');
 $currentLogoUrl = !empty($currentLogo) && file_exists(ROOT_PATH . 'uploads/' . $currentLogo) ? BASE_URL . 'uploads/' . $currentLogo : BASE_URL . 'assets/images/site_logo.png';
 
-// Fetch Governing Body Members
+// Fetch Governing Body Members & Academic Collaborations
 $govMembers = $db->query("SELECT * FROM governing_body_members ORDER BY sort_order ASC, id ASC")->fetchAll();
+$collaborations = $db->query("SELECT * FROM academic_collaborations ORDER BY sort_order ASC, id DESC")->fetchAll();
 
 $pageTitle = "Website Content Manager (CMS)";
 require_once __DIR__ . '/../../includes/header.php';
@@ -365,6 +528,11 @@ require_once __DIR__ . '/../../includes/header.php';
                         <i class="fas fa-users me-2"></i> Governing Body Members <span class="badge bg-maroon ms-1" style="background-color: #7A0C0C;"><?= count($govMembers) ?></span>
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link <?= $activeTab === 'collaborations' ? 'active' : '' ?> font-serif fw-semibold" id="collaborations-tab" data-bs-toggle="pill" data-bs-target="#tab-collaborations" type="button" role="tab" aria-selected="<?= $activeTab === 'collaborations' ? 'true' : 'false' ?>">
+                        <i class="fas fa-handshake me-2"></i> Academic Collaborations <span class="badge bg-success ms-1"><?= count($collaborations) ?></span>
+                    </button>
+                </li>
             </ul>
 
             <div class="tab-content" id="cmsTabsContent">
@@ -403,7 +571,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                         <label class="form-label fw-bold small">Official Contact Email <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                            <input type="email" name="email" class="form-control" value="<?= escape(get_setting('email', 'info@sayaklibrary.org')) ?>" placeholder="info@sayaklibrary.org" required>
+                                            <input type="email" name="email" class="form-control" value="<?= escape(get_setting('email', 'dakshineswarshayak1997@gmail.com')) ?>" placeholder="dakshineswarshayak1997@gmail.com" required>
                                         </div>
                                         <small class="text-muted">General public and administrative inquiries email.</small>
                                     </div>
@@ -412,14 +580,14 @@ require_once __DIR__ . '/../../includes/header.php';
                                         <label class="form-label fw-bold small">Member Support Email</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-headset"></i></span>
-                                            <input type="email" name="email_support" class="form-control" value="<?= escape(get_setting('email_support', 'support@sayaklibrary.org')) ?>" placeholder="support@sayaklibrary.org">
+                                            <input type="email" name="email_support" class="form-control" value="<?= escape(get_setting('email_support', 'dakshineswarshayak1997@gmail.com')) ?>" placeholder="dakshineswarshayak1997@gmail.com">
                                         </div>
                                         <small class="text-muted">Technical support and membership query desk.</small>
                                     </div>
 
                                     <div class="col-12">
                                         <label class="form-label fw-bold small">Full Physical Campus / Library Address <span class="text-danger">*</span></label>
-                                        <textarea name="address" class="form-control" rows="2" required><?= escape(get_setting('address', '124 Academic Avenue, College Street, Kolkata, West Bengal - 700073')) ?></textarea>
+                                        <textarea name="address" class="form-control" rows="2" required><?= escape(get_setting('address', '11, Nepal Chandra Chatterjee Street, Ariadaha, Kolkata - 700057')) ?></textarea>
                                         <small class="text-muted">Complete physical street address displayed across all contact touchpoints.</small>
                                     </div>
 
@@ -439,10 +607,16 @@ require_once __DIR__ . '/../../includes/header.php';
                             </div>
                             <div class="card-body p-4">
                                 <div class="row g-3">
-                                    <div class="col-12">
+                                    <div class="col-md-6">
                                         <label class="form-label fw-bold small">Google Map Embed Iframe URL (src)</label>
-                                        <input type="text" name="map_embed_url" class="form-control font-monospace small" value="<?= escape(get_setting('map_embed_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3684.128795764048!2d88.3638927!3d22.574343!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a0277ab54a83b27%3A0xb36384a56828551!2sCollege%20St%2C%20Kolkata%2C%20West%20Bengal!5e0!3m2!1sen!2sin!4v1680000000000!5m2!1sen!2sin')) ?>">
-                                        <small class="text-muted">Paste the <code>https://www.google.com/maps/embed?...</code> URL from Google Maps Share &gt; Embed a map.</small>
+                                        <input type="text" name="map_embed_url" class="form-control font-monospace small" value="<?= escape(get_setting('map_embed_url', 'https://maps.google.com/maps?q=Dakshineswar+Shayak+Library,+11,+Nepal+Chandra+Chatterjee+St,+Ariadaha,+Kolkata,+West+Bengal+700057&output=embed')) ?>">
+                                        <small class="text-muted">Direct embed URL or from Google Maps Share &gt; Embed a map.</small>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small"><i class="fas fa-map-marked-alt text-danger me-1"></i> Google Maps Link (App / Directions / Share Link)</label>
+                                        <input type="url" name="google_maps_link" class="form-control font-monospace small" value="<?= escape(get_setting('google_maps_link', 'https://maps.app.goo.gl/cJvtR8DGniZ4VaM7A')) ?>" placeholder="https://maps.app.goo.gl/...">
+                                        <small class="text-muted">Short share link for users to open directions in the Google Maps app.</small>
                                     </div>
 
                                     <div class="col-md-6">
@@ -890,7 +1064,7 @@ require_once __DIR__ . '/../../includes/header.php';
                 <!-- TAB 4: INSTITUTIONAL PAGES & DONATIONS CMS           -->
                 <!-- ==================================================== -->
                 <div class="tab-pane fade <?= $activeTab === 'institutional' ? 'show active' : '' ?>" id="tab-institutional" role="tabpanel">
-                    <form action="" method="POST">
+                    <form action="" method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
 
                         <!-- Part A: Our Journey Page -->
@@ -930,23 +1104,69 @@ require_once __DIR__ . '/../../includes/header.php';
                             </div>
                         </div>
 
-                        <!-- Part B: Governance Page -->
+                        <!-- Part B: Governance Page & Legal PDF Document -->
                         <div class="card sayak-card mb-4 border-start border-4 border-primary">
                             <div class="card-header bg-white font-serif py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                 <div class="fw-bold fs-5 text-dark">
-                                    <i class="fas fa-balance-scale text-primary me-2"></i> Institutional Governance (governance.php)
+                                    <i class="fas fa-balance-scale text-primary me-2"></i> Institutional Governance & Legal Constitution (governance.php)
                                 </div>
-                                <a href="<?= BASE_URL ?>governance.php" target="_blank" class="btn btn-outline-secondary btn-sm font-serif">
+                                <a href="<?= BASE_URL ?>governance.php" target="_blank" class="btn btn-outline-primary btn-sm font-serif">
                                     <i class="fas fa-external-link-alt me-1"></i> View Live Governance Page
                                 </a>
                             </div>
                             <div class="card-body p-4">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold small">Governance Lead Subtitle</label>
-                                    <input type="text" name="governance_lead" class="form-control" value="<?= escape(get_setting('governance_lead', 'Standards of transparency, financial accountability, and operational integrity.')) ?>">
+                                <?php
+                                $currentGovPdf = get_setting('governance_pdf', 'uploads/documents/memorandum_of_association_dakshineswar_shayak.pdf');
+                                $govPdfExists = !empty($currentGovPdf) && file_exists(ROOT_PATH . $currentGovPdf);
+                                ?>
+                                <div class="alert alert-light border d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                                    <div>
+                                        <div class="fw-bold text-dark font-serif"><i class="fas fa-file-pdf text-danger me-2 fa-lg"></i> Official Memorandum & Constitution PDF Document</div>
+                                        <small class="text-muted">Current file: <code><?= escape($currentGovPdf) ?></code> <?= $govPdfExists ? '<span class="badge bg-success-subtle text-success border ms-1"><i class="fas fa-check-circle me-1"></i> File Active (' . round(filesize(ROOT_PATH . $currentGovPdf)/(1024*1024), 2) . ' MB)</span>' : '<span class="badge bg-warning-subtle text-warning border ms-1"><i class="fas fa-exclamation-triangle me-1"></i> File Missing</span>' ?></small>
+                                    </div>
+                                    <?php if ($govPdfExists): ?>
+                                        <a href="<?= BASE_URL . escape($currentGovPdf) ?>" target="_blank" class="btn btn-outline-primary btn-sm font-serif">
+                                            <i class="fas fa-eye me-1"></i> View Current PDF
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
 
                                 <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold small text-primary"><i class="fas fa-upload me-1"></i> Upload / Replace Governance Document PDF</label>
+                                        <input type="file" name="governance_pdf_file" class="form-control" accept=".pdf">
+                                        <small class="text-muted">Select a new PDF file to replace the current certified Memorandum of Association and Registration deed displayed on <code>governance.php</code>.</small>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold small">Governance Lead Subtitle / Introduction</label>
+                                        <textarea name="governance_lead" class="form-control" rows="2"><?= escape(get_setting('governance_lead', 'Dakshineswar Shayak is a registered public educational and cultural institution governed strictly under the provisions of the West Bengal Societies Registration Act, 1961. Our institutional governance is founded on unwavering transparency, democratic oversight, and non-profit public service.')) ?></textarea>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small">Society Registration No</label>
+                                        <input type="text" name="registration_no" class="form-control font-monospace" value="<?= escape(get_setting('registration_no', 'S/87920 of 1997-1998')) ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small">Registration Date</label>
+                                        <input type="text" name="reg_date" class="form-control" value="<?= escape(get_setting('reg_date', '27 August 1997')) ?>">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small">Certified Copy Date</label>
+                                        <input type="text" name="cert_copy_date" class="form-control" value="<?= escape(get_setting('cert_copy_date', '03 July 2023')) ?>">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">Certified Copy Stamp Reference No</label>
+                                        <input type="text" name="cert_ref_no" class="form-control font-monospace" value="<?= escape(get_setting('cert_ref_no', '79AB 299217')) ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">Registered Office Address</label>
+                                        <input type="text" name="registered_office" class="form-control" value="<?= escape(get_setting('registered_office', '11, Nepal Chandra Chatterjee Street, P.O. Ariadaha, Kolkata - 700 057')) ?>">
+                                    </div>
+
+                                    <div class="col-12"><hr class="my-2"><strong class="font-serif text-dark">Statutory Compliance & Operational Policies</strong></div>
+
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold small">Regulatory Compliance Title</label>
                                         <input type="text" name="gov_comp_title" class="form-control" value="<?= escape(get_setting('gov_comp_title', 'Regulatory Compliance')) ?>">
@@ -977,50 +1197,35 @@ require_once __DIR__ . '/../../includes/header.php';
                             </div>
                         </div>
 
-                        <!-- Part C: Academic Collaborations -->
+                        <!-- Part C: Academic Collaborations Summary & Lead Settings -->
                         <div class="card sayak-card mb-4 border-start border-4 border-success">
                             <div class="card-header bg-white font-serif py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                 <div class="fw-bold fs-5 text-dark">
                                     <i class="fas fa-handshake text-success me-2"></i> Academic Collaborations (academic-collaborations.php)
                                 </div>
-                                <a href="<?= BASE_URL ?>academic-collaborations.php" target="_blank" class="btn btn-outline-secondary btn-sm font-serif">
-                                    <i class="fas fa-external-link-alt me-1"></i> View Live Collaborations Page
-                                </a>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-success btn-sm font-serif fw-bold" onclick="document.getElementById('collaborations-tab').click();">
+                                        <i class="fas fa-cog me-1"></i> Manage Collaborations & MOUs (<?= count($collaborations) ?>)
+                                    </button>
+                                    <a href="<?= BASE_URL ?>academic-collaborations.php" target="_blank" class="btn btn-outline-secondary btn-sm font-serif">
+                                        <i class="fas fa-external-link-alt me-1"></i> View Live Page
+                                    </a>
+                                </div>
                             </div>
                             <div class="card-body p-4">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold small">Collaborations Page Subtitle</label>
-                                    <input type="text" name="collab_lead" class="form-control" value="<?= escape(get_setting('collab_lead', 'Partnerships with universities, research institutes, and educational publishers.')) ?>">
+                                <div class="alert alert-success-subtle border border-success-subtle d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                    <div>
+                                        <strong class="text-success font-serif"><i class="fas fa-check-circle me-1"></i> Full Multi-Institution Management Available:</strong>
+                                        <span class="small text-secondary ms-1">You can add new colleges/academies, upload their crest logos, and attach signed MOU PDF documents at any time.</span>
+                                    </div>
+                                    <button type="button" class="btn btn-success btn-sm font-serif" onclick="document.getElementById('collaborations-tab').click();">
+                                        <i class="fas fa-handshake me-1"></i> Go to Collaborations Tab
+                                    </button>
                                 </div>
 
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold small">Partnership 1 Title</label>
-                                        <input type="text" name="collab_1_title" class="form-control" value="<?= escape(get_setting('collab_1_title', 'University Inter-Library Loan')) ?>">
-                                        <label class="form-label small text-muted mt-1">Partnership 1 Details:</label>
-                                        <textarea name="collab_1_desc" class="form-control" rows="2"><?= escape(get_setting('collab_1_desc', 'Collaborative borrowing privileges with regional universities for postgraduate and doctoral research scholars.')) ?></textarea>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold small">Partnership 2 Title</label>
-                                        <input type="text" name="collab_2_title" class="form-control" value="<?= escape(get_setting('collab_2_title', 'Competitive Exam Academies')) ?>">
-                                        <label class="form-label small text-muted mt-1">Partnership 2 Details:</label>
-                                        <textarea name="collab_2_desc" class="form-control" rows="2"><?= escape(get_setting('collab_2_desc', 'Resource sharing agreements providing updated test series and reference books for WBCS and Civil Services aspirants.')) ?></textarea>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold small">Partnership 3 Title</label>
-                                        <input type="text" name="collab_3_title" class="form-control" value="<?= escape(get_setting('collab_3_title', 'National Digital Library Partner')) ?>">
-                                        <label class="form-label small text-muted mt-1">Partnership 3 Details:</label>
-                                        <textarea name="collab_3_desc" class="form-control" rows="2"><?= escape(get_setting('collab_3_desc', 'Access integration with open educational repositories and digital learning archives.')) ?></textarea>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold small">Partnership 4 Title</label>
-                                        <input type="text" name="collab_4_title" class="form-control" value="<?= escape(get_setting('collab_4_title', 'Publishing Houses')) ?>">
-                                        <label class="form-label small text-muted mt-1">Partnership 4 Details:</label>
-                                        <textarea name="collab_4_desc" class="form-control" rows="2"><?= escape(get_setting('collab_4_desc', 'Direct procurement partnerships with Ananda Publishers, Oxford University Press, S. Chand, and McGraw Hill.')) ?></textarea>
-                                    </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small">Collaborations Page Lead Headline / Subtitle</label>
+                                    <input type="text" name="collab_lead" class="form-control" value="<?= escape(get_setting('collab_lead', 'Dakshineswar Shayak Library partners actively with leading academic institutions, universities, and colleges to promote library usage, textbook accessibility, and student empowerment.')) ?>">
                                 </div>
                             </div>
                         </div>
@@ -1142,7 +1347,16 @@ require_once __DIR__ . '/../../includes/header.php';
                                                     </td>
                                                     <td>
                                                         <strong class="font-serif text-dark fs-6 d-block"><?= escape($m['name']) ?></strong>
-                                                        <small class="text-muted d-block"><?= escape($m['description'] ?: 'No biography entered.') ?></small>
+                                                        <small class="text-muted d-block"><?= escape($m['description'] ?: 'No subtitle entered.') ?></small>
+                                                        <?php if (!empty(trim($m['bio'] ?? ''))): ?>
+                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle mt-1" style="font-size: 10.5px;">
+                                                                <i class="fas fa-info-circle me-1"></i> "Know More" Info Available
+                                                            </span>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-light text-muted border mt-1" style="font-size: 10px;">
+                                                                No extended info
+                                                            </span>
+                                                        <?php endif; ?>
                                                     </td>
                                                     <td>
                                                         <?php if (($m['committee_type'] ?? 'Governing Body') === 'Governing Body'): ?>
@@ -1196,6 +1410,125 @@ require_once __DIR__ . '/../../includes/header.php';
                         </div>
                     </div>
                 </div>
+
+                <!-- ==================================================== -->
+                <!-- TAB 6: ACADEMIC COLLABORATIONS CMS                   -->
+                <!-- ==================================================== -->
+                <div class="tab-pane fade <?= $activeTab === 'collaborations' ? 'show active' : '' ?>" id="tab-collaborations" role="tabpanel">
+                    <div class="card sayak-card border-top border-4 border-success mb-4">
+                        <div class="card-header bg-white font-serif py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <h5 class="fw-bold mb-0 text-success">
+                                    <i class="fas fa-handshake me-2"></i> Academic Collaborations & Institutional MOUs
+                                </h5>
+                                <small class="text-muted">Manage affiliated colleges, universities, bilateral MOUs, official seals, and signed deed documents.</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="<?= BASE_URL ?>academic-collaborations.php" target="_blank" class="btn btn-outline-secondary btn-sm font-serif">
+                                    <i class="fas fa-external-link-alt me-1"></i> View Live Page
+                                </a>
+                                <button type="button" class="btn btn-success font-serif fw-bold btn-sm" onclick="openAddCollabModal()">
+                                    <i class="fas fa-plus-circle me-1"></i> Add New Academic Collaboration
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <?php if (!empty($collaborations)): ?>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 60px;">Order</th>
+                                                <th style="width: 70px;">Logo</th>
+                                                <th>Partner Institution</th>
+                                                <th>MOU Agreement Title & Ref</th>
+                                                <th>Signing & Validity</th>
+                                                <th>MOU Document (PDF)</th>
+                                                <th>Status</th>
+                                                <th class="text-end pe-4" style="width: 130px;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($collaborations as $c): ?>
+                                                <tr>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark border font-monospace"><?= (int)$c['sort_order'] ?></span>
+                                                    </td>
+                                                    <td>
+                                                        <?php if (!empty($c['partner_logo']) && file_exists(ROOT_PATH . 'uploads/documents/' . $c['partner_logo'])): ?>
+                                                            <img src="<?= BASE_URL ?>uploads/documents/<?= escape($c['partner_logo']) ?>" alt="<?= escape($c['partner_name']) ?>" class="rounded-circle border shadow-sm" style="width: 46px; height: 46px; object-fit: contain; background: #fff; padding: 2px;">
+                                                        <?php else: ?>
+                                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center border" style="width: 46px; height: 46px;">
+                                                                <i class="fas fa-university text-secondary fa-lg"></i>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <strong class="font-serif text-dark fs-6 d-block"><?= escape($c['partner_name']) ?></strong>
+                                                        <small class="text-muted d-block"><?= escape($c['partner_subtitle'] ?: 'No subtitle specified.') ?></small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="d-block small fw-bold text-dark"><?= escape($c['mou_title']) ?></span>
+                                                        <?php if (!empty($c['mou_ref_no'])): ?>
+                                                            <small class="text-muted font-monospace"><i class="fas fa-barcode me-1"></i> Ref: <?= escape($c['mou_ref_no']) ?></small>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <div class="small">
+                                                            <i class="fas fa-calendar-check text-success me-1"></i> <?= !empty($c['signed_date']) ? date('d M Y', strtotime($c['signed_date'])) : '<span class="text-muted">Not specified</span>' ?>
+                                                        </div>
+                                                        <small class="text-muted"><i class="fas fa-hourglass-half me-1"></i> <?= escape($c['validity_period'] ?: '3 Years') ?></small>
+                                                    </td>
+                                                    <td>
+                                                        <?php if (!empty($c['mou_pdf']) && file_exists(ROOT_PATH . 'uploads/documents/' . $c['mou_pdf'])): ?>
+                                                            <a href="<?= BASE_URL ?>uploads/documents/<?= escape($c['mou_pdf']) ?>" target="_blank" class="btn btn-outline-danger btn-sm py-1 px-2 font-serif" style="font-size: 11.5px;">
+                                                                <i class="fas fa-file-pdf me-1"></i> View PDF
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-secondary-subtle text-secondary border" style="font-size: 11px;">No PDF</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php if ($c['status'] === 'Active'): ?>
+                                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Active</span>
+                                                        <?php elseif ($c['status'] === 'Expired'): ?>
+                                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1">Expired</span>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">Draft</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td class="text-end pe-4">
+                                                        <div class="btn-group btn-group-sm">
+                                                            <button type="button" class="btn btn-outline-success" onclick='editCollaboration(<?= json_encode($c) ?>)' title="Edit Collaboration">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <form action="" method="POST" class="d-inline" onsubmit="return confirm('Delete collaboration with <?= escape(addslashes($c['partner_name'])) ?>? This cannot be undone.');">
+                                                                <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                                                                <input type="hidden" name="collaboration_id" value="<?= $c['id'] ?>">
+                                                                <button type="submit" name="delete_collaboration" class="btn btn-outline-danger" title="Delete Collaboration">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php else: ?>
+                                <div class="text-center py-5">
+                                    <i class="fas fa-handshake-slash fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted font-serif">No Academic Collaborations Found</h5>
+                                    <p class="text-secondary small">Click "Add New Academic Collaboration" to add partner universities, colleges, and upload bilateral MOUs.</p>
+                                    <button type="button" class="btn btn-success btn-sm font-serif" onclick="openAddCollabModal()">
+                                        <i class="fas fa-plus me-1"></i> Add First Partner Collaboration
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1212,7 +1545,7 @@ require_once __DIR__ . '/../../includes/header.php';
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="" method="POST" enctype="multipart/form-data">
-                <div class="modal-body p-4">
+                <div class="modal-body p-4" style="max-height: calc(100vh - 200px); overflow-y: auto;">
                     <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
                     <input type="hidden" name="member_id" id="gov_member_id" value="0">
 
@@ -1250,10 +1583,25 @@ require_once __DIR__ . '/../../includes/header.php';
                             </datalist>
                         </div>
 
-                        <!-- Description / Bio -->
+                        <!-- Description / Short Subtitle -->
                         <div class="col-12">
-                            <label class="form-label fw-bold small">Bio / Department / Responsibilities</label>
-                            <textarea name="description" id="gov_description" class="form-control" rows="2" placeholder="e.g. President, Dakshineswar Shayak Library Governing Body."></textarea>
+                            <label class="form-label fw-bold small">Short Subtitle / Role Overview</label>
+                            <input type="text" name="description" id="gov_description" class="form-control" placeholder="e.g. President, Dakshineswar Shayak Library Governing Body.">
+                            <small class="text-muted">Brief summary displayed directly on the member's card.</small>
+                        </div>
+
+                        <!-- Bio / Detailed Information (Know More Modal Content) -->
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fw-bold small text-maroon font-serif mb-0" style="color: #7A0C0C;">
+                                    <i class="fas fa-id-card me-1"></i> Detailed Information & Biography ("Know More" Button Content)
+                                </label>
+                                <span class="badge bg-light text-muted border small">Optional</span>
+                            </div>
+                            <textarea name="bio" id="gov_bio" class="form-control" rows="4" placeholder="Enter extended biographical details, academic qualifications, tenure, library contributions, contact info, or background details..."></textarea>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle text-primary me-1"></i> When you enter information here, a <strong>"Know More"</strong> button will automatically appear on this member's card on the public website.
+                            </small>
                         </div>
 
                         <!-- Photo Upload with Live Preview -->
@@ -1324,6 +1672,182 @@ require_once __DIR__ . '/../../includes/header.php';
     </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- MODAL: ADD / EDIT ACADEMIC COLLABORATION                     -->
+<!-- ============================================================ -->
+<!-- ============================================================ -->
+<!-- MODAL: ADD / EDIT ACADEMIC COLLABORATION                     -->
+<!-- ============================================================ -->
+<div class="modal fade" id="collaborationModal" tabindex="-1" aria-labelledby="collaborationModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <form action="" method="POST" enctype="multipart/form-data" class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title font-serif" id="collaborationModalTitle">Add New Academic Collaboration</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" style="max-height: calc(100vh - 210px); overflow-y: auto;">
+                <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                <input type="hidden" name="collaboration_id" id="collab_id" value="0">
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <h6 class="font-serif fw-bold text-success border-bottom pb-2">
+                            <i class="fas fa-university me-1"></i> 1. Partner Institution & MOU Agreement Title
+                        </h6>
+                    </div>
+
+                    <!-- Partner Name -->
+                    <div class="col-md-7">
+                        <label class="form-label fw-bold small">Partner Institution Name <span class="text-danger">*</span></label>
+                        <input type="text" name="partner_name" id="collab_partner_name" class="form-control" placeholder="e.g. Hiralal Mazumdar Memorial College for Women" required>
+                    </div>
+
+                    <!-- Partner Subtitle -->
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold small">Affiliation / Subtitle</label>
+                        <input type="text" name="partner_subtitle" id="collab_partner_subtitle" class="form-control" placeholder="e.g. Affiliated to WBSU • Estd. 1959">
+                    </div>
+
+                    <!-- MOU Title -->
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold small">MOU Agreement Title <span class="text-danger">*</span></label>
+                        <input type="text" name="mou_title" id="collab_mou_title" class="form-control" placeholder="e.g. Bilateral Memorandum of Understanding for Academic Cooperation" required>
+                    </div>
+
+                    <!-- MOU Ref No -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small">MOU Reference / Deed No</label>
+                        <input type="text" name="mou_ref_no" id="collab_mou_ref_no" class="form-control font-monospace" placeholder="e.g. 73AB 065674">
+                    </div>
+
+                    <div class="col-12 mt-3">
+                        <h6 class="font-serif fw-bold text-success border-bottom pb-2">
+                            <i class="fas fa-calendar-alt me-1"></i> 2. Dates, Validity & Signatories
+                        </h6>
+                    </div>
+
+                    <!-- Signed Date -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Signed Date</label>
+                        <input type="date" name="signed_date" id="collab_signed_date" class="form-control">
+                    </div>
+
+                    <!-- Validity Period -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Validity Period</label>
+                        <input type="text" name="validity_period" id="collab_validity_period" class="form-control" placeholder="e.g. 3 Years (Auto Renewal)">
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Status</label>
+                        <select name="status" id="collab_status" class="form-select">
+                            <option value="Active">Active (Visible)</option>
+                            <option value="Expired">Expired</option>
+                            <option value="Draft">Draft (Hidden)</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort Order -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Display Sequence Order</label>
+                        <input type="number" name="sort_order" id="collab_sort_order" class="form-control" value="1" min="0">
+                    </div>
+
+                    <!-- Partner Signatory -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small">Partner First Party Signatory</label>
+                        <input type="text" name="partner_signatory" id="collab_partner_signatory" class="form-control" placeholder="e.g. Dr. Soma Ghosh, Principal">
+                    </div>
+
+                    <!-- Library Signatory -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small">Library Second Party Signatory</label>
+                        <input type="text" name="library_signatory" id="collab_library_signatory" class="form-control" placeholder="e.g. Pallab Adhikary, Secretary">
+                    </div>
+
+                    <!-- Witnesses -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small">Witnesses / Coordinators</label>
+                        <input type="text" name="witness_details" id="collab_witness_details" class="form-control" placeholder="e.g. IQAC Coordinator & Sourav Maju">
+                    </div>
+
+                    <!-- SECTION 3: LOGO & PDF UPLOADS -->
+                    <div class="col-12 mt-3">
+                        <div class="p-3 rounded border border-success bg-light">
+                            <h6 class="font-serif fw-bold text-success mb-3">
+                                <i class="fas fa-file-upload me-1"></i> 3. Official Documents & Partner Crest Logo
+                            </h6>
+
+                            <div class="row g-3">
+                                <!-- Partner Logo -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-dark">
+                                        <i class="fas fa-image text-primary me-1"></i> Partner Crest / College Logo (JPG, PNG, WEBP)
+                                    </label>
+                                    <input type="file" name="partner_logo" class="form-control" accept="image/*">
+                                    <small class="text-muted d-block mt-1">Official emblem or college seal displayed on the collaborations page.</small>
+                                    <div id="collab_current_logo_wrap" class="mt-2 d-none align-items-center gap-2 p-2 bg-white rounded border">
+                                        <span class="small text-muted fw-bold">Current Logo:</span>
+                                        <img id="collab_current_logo_img" src="" alt="Logo" class="rounded border p-1" style="width: 44px; height: 44px; object-fit: contain; background: #fff;">
+                                    </div>
+                                </div>
+
+                                <!-- MOU Signed Deed PDF -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-danger">
+                                        <i class="fas fa-file-pdf text-danger me-1"></i> Signed Bilateral MOU Deed Document (PDF)
+                                    </label>
+                                    <input type="file" name="mou_pdf" class="form-control" accept=".pdf">
+                                    <small class="text-muted d-block mt-1">Scanned official signed deed document displayed in the interactive viewer.</small>
+                                    <div id="collab_current_pdf_wrap" class="mt-2 d-none align-items-center gap-2 p-2 bg-white rounded border">
+                                        <span class="small text-muted fw-bold">Current Document:</span>
+                                        <a id="collab_current_pdf_link" href="#" target="_blank" class="btn btn-outline-danger btn-sm py-1 px-2 font-monospace" style="font-size: 11.5px;">
+                                            <i class="fas fa-file-pdf me-1"></i> View Current PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-3">
+                        <h6 class="font-serif fw-bold text-success border-bottom pb-2">
+                            <i class="fas fa-align-left me-1"></i> 4. Detailed Narrative & Terms
+                        </h6>
+                    </div>
+
+                    <!-- Summary Text -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold small">Partnership Summary / Lead Narrative</label>
+                        <textarea name="summary_text" id="collab_summary_text" class="form-control" rows="3" placeholder="Brief overview of the partnership agreement and purpose..."></textarea>
+                    </div>
+
+                    <!-- Objectives -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Purpose & Strategic Objectives (Clause I)</label>
+                        <textarea name="objectives" id="collab_objectives" class="form-control" rows="4" placeholder="Separate items with double-enter or newlines..."></textarea>
+                        <small class="text-muted">Enter key objectives. Rendered as highlighted feature cards on the public page.</small>
+                    </div>
+
+                    <!-- Scope & Modalities -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">Operational Scope & Modalities (Clause II & III)</label>
+                        <textarea name="scope_modalities" id="collab_scope_modalities" class="form-control" rows="4" placeholder="Separate terms with double-enter or newlines..."></textarea>
+                        <small class="text-muted">Enter operational terms such as reading visits, study hall privileges, textbook sharing.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" name="save_collaboration" class="btn btn-success font-serif fw-bold px-4">
+                    <i class="fas fa-save me-1"></i> Save Academic Collaboration
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function openAddGovModal() {
     document.getElementById('govMemberModalTitle').innerText = 'Add New Member';
@@ -1332,6 +1856,7 @@ function openAddGovModal() {
     document.getElementById('gov_committee_type').value = 'Governing Body';
     document.getElementById('gov_designation').value = '';
     document.getElementById('gov_description').value = '';
+    document.getElementById('gov_bio').value = '';
     document.getElementById('gov_icon').value = 'fa-user-tie';
     document.getElementById('gov_sort_order').value = '<?= count($govMembers) + 1 ?>';
     document.getElementById('gov_status').value = 'Active';
@@ -1358,6 +1883,7 @@ function editGovMember(m) {
     document.getElementById('gov_committee_type').value = m.committee_type || 'Governing Body';
     document.getElementById('gov_designation').value = m.designation;
     document.getElementById('gov_description').value = m.description || '';
+    document.getElementById('gov_bio').value = m.bio || '';
     document.getElementById('gov_icon').value = m.icon || 'fa-user-tie';
     document.getElementById('gov_sort_order').value = m.sort_order;
     document.getElementById('gov_status').value = m.status;
@@ -1418,6 +1944,80 @@ function filterCommitteeTable(type) {
     if (btnAll) btnAll.className = 'btn btn-sm ' + (type === 'All' ? 'btn-dark' : 'btn-outline-dark') + ' rounded-pill px-3';
     if (btnGov) btnGov.className = 'btn btn-sm ' + (type === 'Governing Body' ? 'btn-danger text-white' : 'btn-outline-danger') + ' rounded-pill px-3';
     if (btnWork) btnWork.className = 'btn btn-sm ' + (type === 'Working Committee' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark') + ' rounded-pill px-3';
+}
+
+function openAddCollabModal() {
+    document.getElementById('collaborationModalTitle').innerText = 'Add New Academic Collaboration';
+    document.getElementById('collab_id').value = 0;
+    document.getElementById('collab_partner_name').value = '';
+    document.getElementById('collab_partner_subtitle').value = '';
+    document.getElementById('collab_mou_title').value = '';
+    document.getElementById('collab_mou_ref_no').value = '';
+    document.getElementById('collab_signed_date').value = '';
+    document.getElementById('collab_validity_period').value = '3 Years';
+    document.getElementById('collab_status').value = 'Active';
+    document.getElementById('collab_sort_order').value = '<?= count($collaborations) + 1 ?>';
+    document.getElementById('collab_partner_signatory').value = '';
+    document.getElementById('collab_library_signatory').value = '';
+    document.getElementById('collab_witness_details').value = '';
+    document.getElementById('collab_summary_text').value = '';
+    document.getElementById('collab_objectives').value = '';
+    document.getElementById('collab_scope_modalities').value = '';
+    
+    var logoWrap = document.getElementById('collab_current_logo_wrap');
+    if (logoWrap) logoWrap.classList.add('d-none');
+    var pdfWrap = document.getElementById('collab_current_pdf_wrap');
+    if (pdfWrap) pdfWrap.classList.add('d-none');
+
+    var modal = new bootstrap.Modal(document.getElementById('collaborationModal'));
+    modal.show();
+}
+
+function editCollaboration(c) {
+    document.getElementById('collaborationModalTitle').innerText = 'Edit Academic Collaboration';
+    document.getElementById('collab_id').value = c.id;
+    document.getElementById('collab_partner_name').value = c.partner_name || '';
+    document.getElementById('collab_partner_subtitle').value = c.partner_subtitle || '';
+    document.getElementById('collab_mou_title').value = c.mou_title || '';
+    document.getElementById('collab_mou_ref_no').value = c.mou_ref_no || '';
+    document.getElementById('collab_signed_date').value = c.signed_date || '';
+    document.getElementById('collab_validity_period').value = c.validity_period || '3 Years';
+    document.getElementById('collab_status').value = c.status || 'Active';
+    document.getElementById('collab_sort_order').value = c.sort_order || 0;
+    document.getElementById('collab_partner_signatory').value = c.partner_signatory || '';
+    document.getElementById('collab_library_signatory').value = c.library_signatory || '';
+    document.getElementById('collab_witness_details').value = c.witness_details || '';
+    document.getElementById('collab_summary_text').value = c.summary_text || '';
+    document.getElementById('collab_objectives').value = c.objectives || '';
+    document.getElementById('collab_scope_modalities').value = c.scope_modalities || '';
+
+    // Handle Logo preview
+    var logoWrap = document.getElementById('collab_current_logo_wrap');
+    var logoImg = document.getElementById('collab_current_logo_img');
+    if (c.partner_logo) {
+        logoImg.src = '<?= BASE_URL ?>uploads/documents/' + c.partner_logo;
+        logoWrap.classList.remove('d-none');
+        logoWrap.classList.add('d-flex');
+    } else {
+        logoWrap.classList.add('d-none');
+        logoWrap.classList.remove('d-flex');
+    }
+
+    // Handle PDF preview
+    var pdfWrap = document.getElementById('collab_current_pdf_wrap');
+    var pdfLink = document.getElementById('collab_current_pdf_link');
+    if (c.mou_pdf) {
+        pdfLink.href = '<?= BASE_URL ?>uploads/documents/' + c.mou_pdf;
+        pdfLink.innerHTML = '<i class="fas fa-file-pdf me-1"></i> View ' + c.mou_pdf;
+        pdfWrap.classList.remove('d-none');
+        pdfWrap.classList.add('d-flex');
+    } else {
+        pdfWrap.classList.add('d-none');
+        pdfWrap.classList.remove('d-flex');
+    }
+
+    var modal = new bootstrap.Modal(document.getElementById('collaborationModal'));
+    modal.show();
 }
 </script>
 

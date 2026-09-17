@@ -79,7 +79,10 @@ require_once __DIR__ . '/includes/header.php';
                         <label class="form-label fw-bold small">Password</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="fas fa-key text-muted"></i></span>
-                            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                            <input type="password" name="password" id="loginPassword" class="form-control" placeholder="Enter password" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()" title="Show / Hide Password" aria-label="Toggle password visibility">
+                                <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -87,25 +90,6 @@ require_once __DIR__ . '/includes/header.php';
                         <i class="fas fa-sign-in-alt me-2"></i> Log In to Portal
                     </button>
                 </form>
-
-                <hr class="my-4">
-
-                <!-- Demo Credentials Helper Box for Developer & User Testing -->
-                <div class="p-3 bg-light rounded border">
-                    <small class="fw-bold d-block mb-1 text-dark"><i class="fas fa-info-circle text-primary me-1"></i> Local Demo Credentials:</small>
-                    <div class="small text-muted mb-1">
-                        <strong>Super Admin:</strong> <code>admin@sayaklibrary.org</code> / <code>password123</code>
-                    </div>
-                    <div class="small text-muted mb-1">
-                        <strong>Librarian:</strong> <code>librarian@sayaklibrary.org</code> / <code>password123</code>
-                    </div>
-                    <div class="small text-muted mb-1">
-                        <strong>Active Member:</strong> <code>member@sayaklibrary.org</code> / <code>password123</code>
-                    </div>
-                    <div class="small text-muted">
-                        <strong>Expired Member (>15 days):</strong> <code>rahul@sayaklibrary.org</code> / <code>password123</code>
-                    </div>
-                </div>
 
                 <div class="text-center mt-4">
                     <?php $isPdfMode = (get_setting('membership_mode', 'online') === 'pdf'); ?>
@@ -115,5 +99,21 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('loginPassword');
+    const toggleIcon = document.getElementById('togglePasswordIcon');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
