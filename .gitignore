@@ -8,6 +8,8 @@ includes/config.local.php
 Thumbs.db
 desktop.ini
 *.tmp
+*.zip
+
 
 # IDEs
 .vscode/
