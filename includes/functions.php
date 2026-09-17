@@ -218,3 +218,44 @@ function get_expired_unreturned_alerts_count(): int {
     }
 }
 
+/**
+ * Convert Google Sheet or external spreadsheet link into embeddable URL
+ */
+function get_catalog_sheet_embed_url(string $url): string {
+    $url = trim($url);
+    if (empty($url)) return '';
+
+    // If already has pubhtml or preview, return as is
+    if (strpos($url, '/pubhtml') !== false || strpos($url, '/preview') !== false) {
+        return $url;
+    }
+
+    // Google Sheets: https://docs.google.com/spreadsheets/d/{ID}/edit... -> /preview?widget=true&headers=false
+    if (preg_match('#docs\.google\.com/spreadsheets/d/([a-zA-Z0-9-_]+)#', $url, $matches)) {
+        $sheetId = $matches[1];
+        // Check if specific gid is present
+        $gidParam = '';
+        if (preg_match('#[#&?]gid=([0-9]+)#', $url, $gidMatches)) {
+            $gidParam = '&gid=' . $gidMatches[1];
+        }
+        return "https://docs.google.com/spreadsheets/d/{$sheetId}/preview?widget=true&headers=false" . $gidParam;
+    }
+
+    return $url;
+}
+
+/**
+ * Get active membership application PDF URL (local file or external URL)
+ */
+function get_membership_form_url(): string {
+    $file = get_setting('membership_pdf_file', '');
+    if (!empty($file) && file_exists(ROOT_PATH . 'uploads/forms/' . $file)) {
+        return BASE_URL . 'uploads/forms/' . $file;
+    }
+    $url = get_setting('membership_pdf_url', '');
+    if (!empty($url)) {
+        return $url;
+    }
+    return '';
+}
+

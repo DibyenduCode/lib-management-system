@@ -108,7 +108,8 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="text-center mt-4">
-                    <small class="text-muted">Not registered yet? <a href="<?= BASE_URL ?>usership.php" class="fw-bold text-maroon" style="color: #7A0C0C;">Apply for Usership</a></small>
+                    <?php $isPdfMode = (get_setting('membership_mode', 'online') === 'pdf'); ?>
+                    <small class="text-muted">Not registered yet? <a href="<?= BASE_URL ?>usership.php" class="fw-bold text-maroon" style="color: #7A0C0C;"><?= $isPdfMode ? 'Download Membership Form' : 'Apply for Usership' ?></a></small>
                 </div>
             </div>
         </div>

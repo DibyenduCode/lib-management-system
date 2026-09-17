@@ -63,6 +63,22 @@ require_once __DIR__ . '/../../includes/header.php';
                 </button>
             </div>
 
+            <?php if (get_setting('membership_mode', 'online') === 'pdf'): ?>
+                <div class="alert alert-warning border-start border-4 border-warning shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                    <div>
+                        <div class="fw-bold text-dark mb-1">
+                            <i class="fas fa-file-pdf text-danger me-2 fs-5"></i> Public Signup is currently in "Offline PDF Form Mode"
+                        </div>
+                        <div class="small text-muted">
+                            Online member registration is currently disabled for the public. Visitors are directed to download and submit your printable PDF application form.
+                        </div>
+                    </div>
+                    <a href="<?= BASE_URL ?>admin/settings/index.php#membership-settings" class="btn btn-warning btn-sm fw-bold text-dark text-nowrap">
+                        <i class="fas fa-sliders-h me-1"></i> Membership Mode Settings
+                    </a>
+                </div>
+            <?php endif; ?>
+
             <div class="row g-4">
                 <?php foreach ($plans as $p): ?>
                     <div class="col-md-4">

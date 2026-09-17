@@ -54,14 +54,50 @@ $galleryItems = $galleryStmt->fetchAll();
                     </div>
                 </form>
             </div>
-            <div class="col-lg-5 text-center">
-                <div class="hero-card bg-white text-dark p-4 rounded-3 shadow-lg position-relative">
-                    <span class="badge bg-danger position-absolute top-0 end-0 m-3">FEATURED BOOK</span>
-                    <i class="fas fa-book-open fa-4x text-maroon mb-3" style="color: #7A0C0C;"></i>
-                    <h4 class="font-serif fw-bold" style="color: #7A0C0C;"><?= escape(get_setting('hero_featured_book_title', 'Gitanjali (Song Offerings)')) ?></h4>
-                    <p class="text-muted small"><?= escape(get_setting('hero_featured_book_author', 'By Rabindranath Tagore')) ?></p>
-                    <p class="small text-secondary"><?= escape(get_setting('hero_featured_book_desc', 'Nobel Prize winning collection of poems capturing spiritual devotion and sublime lyricism.')) ?></p>
-                    <a href="<?= BASE_URL ?>book-detail.php?id=1" class="btn btn-gold btn-sm w-100 mt-2">View Book Details</a>
+            <div class="col-lg-5">
+                <div class="hero-card bg-white text-dark p-4 rounded-3 shadow-lg position-relative border-top border-4 border-warning">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-danger px-3 py-1 rounded-pill fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <i class="fas fa-heart me-1"></i> DONATE & SUPPORT
+                        </span>
+                        <small class="text-success fw-bold"><i class="fas fa-shield-alt me-1"></i> Community Initiative</small>
+                    </div>
+
+                    <h4 class="font-serif fw-bold mb-2" style="color: #7A0C0C;">
+                        <?= escape(get_setting('donate_appeal_title', 'Donate to Sayak Library')) ?>
+                    </h4>
+                    <p class="text-secondary small mb-3">
+                        <?= escape(get_setting('donate_appeal_desc', 'Your contributions directly support book restoration, student scholarships, rare manuscript preservation, and e-learning resources.')) ?>
+                    </p>
+
+                    <!-- Quick Impact Points -->
+                    <div class="bg-light p-3 rounded-2 mb-3 border">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-book text-maroon me-2" style="color: #7A0C0C;"></i>
+                            <span class="small fw-semibold text-dark">Gift syllabus or reference books to readers</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-user-graduate text-maroon me-2" style="color: #7A0C0C;"></i>
+                            <span class="small fw-semibold text-dark">Sponsor underprivileged student memberships</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-qrcode text-warning me-2"></i>
+                            <span class="small text-muted">UPI: <strong class="text-dark font-monospace"><?= escape(get_setting('donate_upi_id', 'sayaklibrary@sbi')) ?></strong></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-7">
+                            <a href="<?= BASE_URL ?>donate.php" class="btn btn-gold btn-sm w-100 py-2 fw-bold shadow-sm">
+                                <i class="fas fa-hand-holding-heart me-1"></i> Donate Now
+                            </a>
+                        </div>
+                        <div class="col-5">
+                            <a href="<?= BASE_URL ?>usership.php" class="btn btn-outline-maroon btn-sm w-100 py-2 fw-bold">
+                                Join Library
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -149,8 +185,8 @@ $galleryItems = $galleryStmt->fetchAll();
 <section class="py-5 bg-white">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="section-title text-center">Explore Our Collections</h2>
-            <p class="text-muted">Browse our curated book categories tailored for academic and literary pursuits.</p>
+            <h2 class="section-title text-center"><?= escape(get_setting('home_collections_title', 'Explore Our Collections')) ?></h2>
+            <p class="text-muted"><?= escape(get_setting('home_collections_subtitle', 'Browse our curated book categories tailored for academic and literary pursuits.')) ?></p>
         </div>
 
         <div class="row g-4">
@@ -182,6 +218,49 @@ $galleryItems = $galleryStmt->fetchAll();
     </div>
 </section>
 
+<?php 
+$catalogMode = get_setting('catalog_mode', 'database');
+if ($catalogMode === 'sheet'): 
+?>
+<!-- Library Catalog Banner (Google Sheet Mode Active) -->
+<section class="py-5" style="background-color: #F8F9FA;">
+    <div class="container">
+        <div class="card sayak-card border-0 shadow-sm overflow-hidden" style="background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);">
+            <div class="row align-items-center g-0">
+                <div class="col-lg-8 p-4 p-md-5 text-white">
+                    <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-3">
+                        <i class="fas fa-file-excel me-1"></i> Interactive Online Catalog
+                    </span>
+                    <h3 class="font-serif fw-bold text-white mb-2"><?= escape(get_setting('catalog_sheet_title', 'Library Book Collection & Catalog')) ?></h3>
+                    <p class="text-white-50 mb-4" style="max-width: 650px;">
+                        <?= escape(get_setting('catalog_sheet_notice', 'Our physical library collection is currently being digitized into this portal. In the meantime, please browse our complete book list, titles, and links in the live spreadsheet.')) ?>
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="<?= BASE_URL ?>collections.php" class="btn btn-warning fw-bold px-4 py-2 text-dark">
+                            <i class="fas fa-table me-2"></i> Browse Complete Sheet Catalog
+                        </a>
+                        <?php 
+                        $sheetDirectUrl = get_setting('catalog_sheet_url', '');
+                        if (!empty($sheetDirectUrl)): 
+                        ?>
+                            <a href="<?= escape($sheetDirectUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light px-3 py-2">
+                                <i class="fas fa-external-link-alt me-1"></i> Open in Google Sheets
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="col-lg-4 d-none d-lg-flex justify-content-center align-items-center p-4">
+                    <div class="text-center text-white-50">
+                        <i class="fas fa-book-reader fa-6x text-warning mb-3 opacity-75"></i>
+                        <h6 class="text-white fw-bold">Digitization In Progress</h6>
+                        <small class="d-block text-white-50">Physical volumes being cataloged daily</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<?php else: ?>
 <!-- Featured Books Showcase -->
 <section class="py-5" style="background-color: #F8F9FA;">
     <div class="container">
@@ -223,13 +302,14 @@ $galleryItems = $galleryStmt->fetchAll();
         </div>
     </div>
 </section>
+<?php endif; ?>
 
 <!-- Membership Information (Requirement 37) -->
 <section class="py-5 bg-white border-top">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="section-title text-center">Library Membership Plans</h2>
-            <p class="text-muted">Affordable paid subscription plans for students, researchers, and public readers.</p>
+            <h2 class="section-title text-center"><?= escape(get_setting('home_membership_title', 'Library Membership Plans')) ?></h2>
+            <p class="text-muted"><?= escape(get_setting('home_membership_subtitle', 'Affordable paid subscription plans for students, researchers, and public readers.')) ?></p>
         </div>
 
         <div class="row g-4 justify-content-center">

@@ -32,7 +32,7 @@ $isDashboard = (
                         <h5 class="mb-0 text-white font-serif"><?= escape(get_setting('library_name', 'SAYAK LIBRARY')) ?></h5>
                     </div>
                     <p class="text-secondary small">
-                        Dedicated to promoting knowledge, academic research, and literary heritage. Providing comprehensive physical lending services and digital PDF resources to readers and students.
+                        <?= escape(get_setting('footer_about', 'Dedicated to promoting knowledge, academic research, and literary heritage. Providing comprehensive physical lending services and digital PDF resources to readers and students.')) ?>
                     </p>
                     <div class="social-links d-flex gap-2">
                         <?php if (!empty(get_setting('social_facebook', '#')) && get_setting('social_facebook', '#') !== '#'): ?>

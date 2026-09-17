@@ -82,10 +82,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['save_branding_cms'])
         $brandingKeys = [
             'library_name', 'established_year', 'registration_no',
             'hero_badge', 'hero_title', 'hero_lead',
-            'hero_featured_book_title', 'hero_featured_book_author', 'hero_featured_book_desc',
+            'donate_appeal_title', 'donate_appeal_desc', 'donate_upi_id',
             'about_subtitle', 'about_title', 'about_para1', 'about_mission_quote',
             'about_physical_count', 'about_digital_count',
-            'facility_1', 'facility_2', 'facility_3', 'facility_4'
+            'facility_1', 'facility_2', 'facility_3', 'facility_4',
+            'home_collections_subtitle', 'home_collections_title',
+            'home_membership_subtitle', 'home_membership_title',
+            'footer_about'
         ];
 
         foreach ($brandingKeys as $key) {
@@ -113,14 +116,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_rules_cms'])) {
     if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $errors[] = "Security token validation failed.";
     } else {
-        $rulesKeys = [
-            'rules_lead',
-            'rules_sec1_title', 'rules_sec1_content',
-            'rules_sec2_title', 'rules_sec2_content',
-            'rules_sec3_title', 'rules_sec3_content',
-            'rules_sec4_title', 'rules_sec4_content',
-            'rules_sec5_title', 'rules_sec5_content'
-        ];
+        $rulesKeys = ['rules_lead'];
+        for ($i = 1; $i <= 19; $i++) {
+            $rulesKeys[] = "rule_{$i}_en";
+            $rulesKeys[] = "rule_{$i}_bn";
+        }
 
         foreach ($rulesKeys as $key) {
             if (isset($_POST[$key])) {
@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_institutional_cm
     } else {
         $instKeys = [
             // Our Journey
-            'journey_lead', 'journey_1995_title', 'journey_1995_desc', 'journey_2008_title', 'journey_2008_desc', 'journey_present_title', 'journey_present_desc', 'journey_mission',
+            'journey_lead', 'journey_story_content', 'journey_mission',
             // Governance
             'governance_lead', 'gov_comp_title', 'gov_comp_desc', 'gov_audit_title', 'gov_audit_desc', 'gov_sec_title', 'gov_sec_desc',
             // Academic Collaborations
@@ -186,6 +186,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_gov_member'])) {
         $mId = (int)($_POST['member_id'] ?? 0);
         $name = sanitize_input($_POST['name'] ?? '');
         $designation = sanitize_input($_POST['designation'] ?? '');
+        $committeeType = sanitize_input($_POST['committee_type'] ?? 'Governing Body');
+        if (!in_array($committeeType, ['Governing Body', 'Working Committee'])) $committeeType = 'Governing Body';
         $description = sanitize_input($_POST['description'] ?? '');
         $icon = sanitize_input($_POST['icon'] ?? 'fa-user-tie');
         $sortOrder = (int)($_POST['sort_order'] ?? 0);
@@ -237,25 +239,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_gov_member'])) {
                     if ($oldPhoto && file_exists(ROOT_PATH . 'uploads/governing_body/' . $oldPhoto)) {
                         @unlink(ROOT_PATH . 'uploads/governing_body/' . $oldPhoto);
                     }
-                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, description = ?, icon = ?, sort_order = ?, status = ?, photo = ? WHERE id = ?")
-                       ->execute([$name, $designation, $description, $icon, $sortOrder, $status, $newPhotoFilename, $mId]);
+                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, committee_type = ?, description = ?, icon = ?, sort_order = ?, status = ?, photo = ? WHERE id = ?")
+                       ->execute([$name, $designation, $committeeType, $description, $icon, $sortOrder, $status, $newPhotoFilename, $mId]);
                 } elseif ($removePhoto) {
                     if ($oldPhoto && file_exists(ROOT_PATH . 'uploads/governing_body/' . $oldPhoto)) {
                         @unlink(ROOT_PATH . 'uploads/governing_body/' . $oldPhoto);
                     }
-                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, description = ?, icon = ?, sort_order = ?, status = ?, photo = NULL WHERE id = ?")
-                       ->execute([$name, $designation, $description, $icon, $sortOrder, $status, $mId]);
+                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, committee_type = ?, description = ?, icon = ?, sort_order = ?, status = ?, photo = NULL WHERE id = ?")
+                       ->execute([$name, $designation, $committeeType, $description, $icon, $sortOrder, $status, $mId]);
                 } else {
-                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, description = ?, icon = ?, sort_order = ?, status = ? WHERE id = ?")
-                       ->execute([$name, $designation, $description, $icon, $sortOrder, $status, $mId]);
+                    $db->prepare("UPDATE governing_body_members SET name = ?, designation = ?, committee_type = ?, description = ?, icon = ?, sort_order = ?, status = ? WHERE id = ?")
+                       ->execute([$name, $designation, $committeeType, $description, $icon, $sortOrder, $status, $mId]);
                 }
-                log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Edit Gov Member', 'GoverningBody', "Updated: {$name} ({$designation})");
-                set_flash_message('success', "Governing body member '{$name}' updated successfully.");
+                log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Edit Gov Member', 'GoverningBody', "Updated: {$name} ({$designation} - {$committeeType})");
+                set_flash_message('success', "Member '{$name}' updated successfully.");
             } else {
-                $ins = $db->prepare("INSERT INTO governing_body_members (name, designation, description, photo, icon, sort_order, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
-                $ins->execute([$name, $designation, $description, $newPhotoFilename, $icon, $sortOrder, $status]);
-                log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Add Gov Member', 'GoverningBody', "Added: {$name} ({$designation})");
-                set_flash_message('success', "New governing body member '{$name}' added successfully.");
+                $ins = $db->prepare("INSERT INTO governing_body_members (name, designation, committee_type, description, photo, icon, sort_order, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+                $ins->execute([$name, $designation, $committeeType, $description, $newPhotoFilename, $icon, $sortOrder, $status]);
+                log_audit_action($_SESSION['user_id'], 'SUPER_ADMIN', 'Add Gov Member', 'GoverningBody', "Added: {$name} ({$designation} - {$committeeType})");
+                set_flash_message('success', "New member '{$name}' added successfully.");
             }
             header("Location: " . BASE_URL . "admin/cms/index.php?tab=govbody");
             exit();
@@ -535,19 +537,19 @@ require_once __DIR__ . '/../../includes/header.php';
                                         <textarea name="hero_lead" class="form-control" rows="2"><?= escape(get_setting('hero_lead', 'Explore over 25,000+ physical books, rare historical manuscripts, and an expanding digital PDF repository for students, researchers, and book lovers.')) ?></textarea>
                                     </div>
 
-                                    <div class="col-12"><hr class="my-2"><strong class="font-serif text-maroon" style="color: #7A0C0C;">Featured Book Highlight Box (Hero Right Column)</strong></div>
+                                    <div class="col-12"><hr class="my-2"><strong class="font-serif text-maroon" style="color: #7A0C0C;"><i class="fas fa-hand-holding-heart me-1"></i> Donate Us & Support Card (Hero Right Column)</strong></div>
 
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold small">Featured Book Name</label>
-                                        <input type="text" name="hero_featured_book_title" class="form-control" value="<?= escape(get_setting('hero_featured_book_title', 'Gitanjali (Song Offerings)')) ?>">
+                                        <label class="form-label fw-bold small">Donate Appeal Title</label>
+                                        <input type="text" name="donate_appeal_title" class="form-control" value="<?= escape(get_setting('donate_appeal_title', 'Donate to Sayak Library')) ?>">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label fw-bold small">Featured Book Author</label>
-                                        <input type="text" name="hero_featured_book_author" class="form-control" value="<?= escape(get_setting('hero_featured_book_author', 'By Rabindranath Tagore')) ?>">
+                                        <label class="form-label fw-bold small">Donate UPI ID (Displayed on card)</label>
+                                        <input type="text" name="donate_upi_id" class="form-control font-monospace" value="<?= escape(get_setting('donate_upi_id', 'sayaklibrary@sbi')) ?>">
                                     </div>
                                     <div class="col-12">
-                                        <label class="form-label fw-bold small">Featured Book Short Summary</label>
-                                        <input type="text" name="hero_featured_book_desc" class="form-control" value="<?= escape(get_setting('hero_featured_book_desc', 'Nobel Prize winning collection of poems capturing spiritual devotion and sublime lyricism.')) ?>">
+                                        <label class="form-label fw-bold small">Donate Appeal Description</label>
+                                        <input type="text" name="donate_appeal_desc" class="form-control" value="<?= escape(get_setting('donate_appeal_desc', 'Your contributions directly support book restoration, student scholarships, rare manuscript preservation, and e-learning resources.')) ?>">
                                     </div>
                                 </div>
                             </div>
@@ -618,6 +620,47 @@ require_once __DIR__ . '/../../includes/header.php';
                             </div>
                         </div>
 
+                        <!-- Section 5: Homepage Catalog & Membership Section Headings -->
+                        <div class="card sayak-card mb-4 border-start border-4 border-info">
+                            <div class="card-header bg-white font-serif py-3 fw-bold fs-5">
+                                <i class="fas fa-layer-group text-info me-2"></i> Homepage Catalog & Membership Headings
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">Catalog Section Subtitle Badge</label>
+                                        <input type="text" name="home_collections_subtitle" class="form-control" value="<?= escape(get_setting('home_collections_subtitle', 'EXPLORE OUR CATALOG')) ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">Catalog Section Main Title</label>
+                                        <input type="text" name="home_collections_title" class="form-control" value="<?= escape(get_setting('home_collections_title', 'Featured Library Collections')) ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">Membership Section Subtitle Badge</label>
+                                        <input type="text" name="home_membership_subtitle" class="form-control" value="<?= escape(get_setting('home_membership_subtitle', 'JOIN SAYAK LIBRARY')) ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold small">Membership Section Main Title</label>
+                                        <input type="text" name="home_membership_title" class="form-control" value="<?= escape(get_setting('home_membership_title', 'Simple, Affordable Membership Plans')) ?>">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 6: Global Footer About Paragraph -->
+                        <div class="card sayak-card mb-4 border-start border-4 border-secondary">
+                            <div class="card-header bg-white font-serif py-3 fw-bold fs-5">
+                                <i class="fas fa-shoe-prints text-secondary me-2"></i> Global Footer About Description
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="mb-2">
+                                    <label class="form-label fw-bold small">Footer Short About Paragraph</label>
+                                    <textarea name="footer_about" class="form-control" rows="3"><?= escape(get_setting('footer_about', 'Established in 1995, Dakshineswar Shayak Library is a registered public academic repository dedicated to fostering education, research, and literature for students and researchers.')) ?></textarea>
+                                    <small class="text-muted">Displayed under the library logo in the website footer across all pages.</small>
+                                </div>
+                            </div>
+                        </div>
+
                         <button type="submit" name="save_branding_cms" class="btn btn-maroon btn-lg w-100 font-serif fw-bold py-3" style="background-color: #7A0C0C;">
                             <i class="fas fa-save me-2"></i> Save Website Branding & Homepage Content
                         </button>
@@ -625,16 +668,160 @@ require_once __DIR__ . '/../../includes/header.php';
                 </div>
 
                 <!-- ==================================================== -->
-                <!-- TAB 3: USER RULES & REGULATIONS CMS                  -->
+                <!-- TAB 3: USER RULES & REGULATIONS CMS (19 OFFICIAL RULES) -->
                 <!-- ==================================================== -->
                 <div class="tab-pane fade <?= $activeTab === 'rules' ? 'show active' : '' ?>" id="tab-rules" role="tabpanel">
+                    <?php
+                    $officialRulesCMS = [
+                        1 => [
+                            'en' => "Books will be issued on demand basis.",
+                            'bn' => "চাহিদা অনুযায়ী বই দেওয়া হবে।",
+                            'tag' => "Issuing Policy",
+                            'badge' => "bg-primary text-white",
+                            'icon' => "fas fa-book-reader"
+                        ],
+                        2 => [
+                            'en' => "At a time one / two book(s) will be issued for seven days only.",
+                            'bn' => "এককালীন একটি বা দুটি বই ৭ দিনের জন্য দেওয়া হবে।",
+                            'tag' => "7 Days Limit",
+                            'badge' => "bg-warning text-dark",
+                            'icon' => "fas fa-calendar-week"
+                        ],
+                        3 => [
+                            'en' => "Books may be renewed in absence of other's demand.",
+                            'bn' => "অন্য কারোর চাহিদা না থাকলে বই-এর পুন:নবীকরণ করা যাবে।",
+                            'tag' => "Renewal",
+                            'badge' => "bg-info text-dark",
+                            'icon' => "fas fa-redo-alt"
+                        ],
+                        4 => [
+                            'en' => "Demandship will be rejected if it is found that the book was in the library at the time of issuing demand.",
+                            'bn' => "গ্রন্থাগারে বই থাকা সত্ত্বেও সেই বই এর উপর চাহিদা দিলে চাহিদাপত্র বাতিল বলে গণ্য হবে।",
+                            'tag' => "Demand Clause",
+                            'badge' => "bg-secondary text-white",
+                            'icon' => "fas fa-times-circle"
+                        ],
+                        5 => [
+                            'en' => "User must report any damage / mutilation of book before issuing the same. Identification of damage / mutilation at a later date, automatically the liability will rest with the person to whom the book was last issued. In such cases the Library Authority will make the final decision.",
+                            'bn' => "বই এর ছেঁড়া/ফাটা পাতা ইত্যাদি বই ইস্যু করার আগে দেখে নিতে হবে। যদি বই এর কোনো রকম ক্ষয়ক্ষতি পরে পাওয়া যায় তবে, সর্বশেষ যার কাছে বইটা ইস্যু ছিল তার ওপর দায় বর্তাবে। গ্রন্থাগার কর্তৃপক্ষ এই ব্যাপারে চূড়ান্ত সিদ্ধান্ত নেবে।",
+                            'tag' => "Damage Liability",
+                            'badge' => "bg-danger text-white",
+                            'icon' => "fas fa-search"
+                        ],
+                        6 => [
+                            'en' => "Folding page corners, marking with pencil or ink, or tearing pages/pictures from the books is strictly prohibited.",
+                            'bn' => "বইয়ের পাতা ভাঁজ করা, পেন্সিল বা কালি দিয়ে দাগ দেওয়া অথবা কোনো ছবি বা পাতা কাটা কঠোরভাবে নিষিদ্ধ।",
+                            'tag' => "Strictly Prohibited",
+                            'badge' => "bg-danger text-white",
+                            'icon' => "fas fa-ban"
+                        ],
+                        7 => [
+                            'en' => "In the event of a lost book, the user must replace it with a new copy of the same edition or pay the current market price of the book. The caution money deposit shall not be considered as an alternative compensation for the lost book.",
+                            'bn' => "কোনো বই হারিয়ে গেলে ব্যবহারকারীকে ওই একই বইয়ের নতুন কপি কিনে দিতে হবে অথবা বর্তমান বাজারদর অনুযায়ী বইয়ের সম্পূর্ণ মূল্য প্রদান করতে হবে। জমা রাখা ফেরতযোগ্য অর্থ (Caution Money) কোনোভাবেই হারিয়ে যাওয়া বইয়ের বিকল্প ক্ষতিপূরণ হিসেবে গণ্য হবে না।",
+                            'tag' => "Lost Book Policy",
+                            'badge' => "bg-danger text-white",
+                            'icon' => "fas fa-exclamation-triangle"
+                        ],
+                        8 => [
+                            'en' => "In absence of the user at library on due date he / she would send an authorisation letter addressed to \"The Secretary / Librarian, Dakshineswar Shayak Library\" to change /renew the book, otherwise the book will be returned. The system will be valid for only one week only.",
+                            'bn' => "গ্রন্থাগার এর নির্দিষ্ট দিনে কোনও লাইব্রেরি ব্যবহারকারী (User) পরিবর্ত কাউকে বদল বা একই বই পুনরায় নিতে পাঠালে, অবশ্যই ঐ লাইব্রেরি ব্যবহারকারী (User)-কে 'গ্রন্থাগারিক / সম্পাদক দক্ষিণেশ্বর শায়ক লাইব্রেরি' এর উদ্দেশ্যে চিঠি পাঠাতে হবে। ওই লাইব্রেরি ব্যবহারকারী (User) তার পরিবর্ত হিসাবে যাকে পাঠাচ্ছেন তার স্বাক্ষর উক্ত চিঠিতে প্রত্যয়িত (attested) করতে হবে। অন্যথায় বই ফেরত নেওয়া হবে। এই পদ্ধতি কেবলমাত্র এক সপ্তাহের জন্যই ধার্য্য হবে।",
+                            'tag' => "Proxy / Authorisation",
+                            'badge' => "bg-warning text-dark",
+                            'icon' => "fas fa-envelope-open-text"
+                        ],
+                        9 => [
+                            'en' => "The usership card is strictly non-transferable (except as conditionally permitted in Rule 8). The card must not be lent to anyone else under any circumstances.",
+                            'bn' => "গ্রন্থাগারের ব্যবহারকারী কার্ডটি সম্পূর্ণরূপে হস্তান্তরযোগ্য নয় (৮ নং নিয়ম ব্যতীত)। কোনো অবস্থাতেই অন্য কাউকে এই কার্ড ব্যবহার করতে দেওয়া যাবে না।",
+                            'tag' => "Non-Transferable",
+                            'badge' => "bg-dark text-white",
+                            'icon' => "fas fa-id-card-alt"
+                        ],
+                        10 => [
+                            'en' => "Two passport size recent colour photographs (taken within the last six months) of the applicant will be required at the time of registration.",
+                            'bn' => "আবেদনকারীর নাম নথীভুক্তকরণের জন্য দু কপি পাসপোর্ট মাপের রঙিন ছবি (গত ছয় মাসের মধ্যে তোলা) লাগবে।",
+                            'tag' => "Registration Requirement",
+                            'badge' => "bg-primary text-white",
+                            'icon' => "fas fa-camera"
+                        ],
+                        11 => [
+                            'en' => "A sum of Rs.50/- (Rupees fifty only) per book will be taken as caution money in case of lending, which will be refunded after termination of usership.",
+                            'bn' => "ফেরতযোগ্য অর্থ (Caution Money) হিসেবে ৫০ টাকা প্রত্যেক বই এর জন্য জমা রাখতে হবে।",
+                            'tag' => "Caution Money: ₹50/-",
+                            'badge' => "bg-success text-white",
+                            'icon' => "fas fa-hand-holding-usd"
+                        ],
+                        12 => [
+                            'en' => "Rs.5/- (Rupees five only) will be taken as registration fees.",
+                            'bn' => "নাম নথী ভুক্তকরণের জন্য ৫ টাকা জমা করতে হবে।",
+                            'tag' => "Registration Fee: ₹5/-",
+                            'badge' => "bg-primary text-white",
+                            'icon' => "fas fa-ticket-alt"
+                        ],
+                        13 => [
+                            'en' => "Rs.20/- (Rupees twenty only) will be taken as Monthly Subscription.",
+                            'bn' => "ব্যবহারকারীর মাসিক চাঁদা ২০ টাকা ধার্য্য করা হবে।",
+                            'tag' => "Monthly Subscription: ₹20/-",
+                            'badge' => "bg-info text-dark",
+                            'icon' => "fas fa-coins"
+                        ],
+                        14 => [
+                            'en' => "Rs.1/- (One rupee only) per day per book will be charged as Fine in case of late return book.",
+                            'bn' => "বই দেরীতে ফেরৎ দিলে প্রতি বই এর ক্ষেত্রে প্রত্যেকদিন ১ টাকা হিসেবে জরিমানা ধার্য্য হবে।",
+                            'tag' => "Late Fine: ₹1 / Day",
+                            'badge' => "bg-danger text-white",
+                            'icon' => "fas fa-clock"
+                        ],
+                        15 => [
+                            'en' => "If any user's monthly subscriptions and fine exceed deposit money i.e., Rs.50/- or Rs.100/- his/her usership card will be automatically terminated.",
+                            'bn' => "যদি কোন গ্রন্থাগার ব্যবহারকারীর মাসিক চাঁদা ও জরিমানা, জমা রাখা ৫০/- অথবা ১০০/- ফেরতযোগ্য অর্থ (Caution Money)-এর অধিক হয়ে যায়, তাহলে তার গ্রন্থাগার ব্যবহারের সদস্যপদ বাতিল বলে গণ্য হবে।",
+                            'tag' => "Card Termination",
+                            'badge' => "bg-danger text-white",
+                            'icon' => "fas fa-user-times"
+                        ],
+                        16 => [
+                            'en' => "The Library working days are Thursday & Saturday 7:30 P.M. to 9:00 P.M, Sunday 9:30 A.M. - 12:30 Noon.",
+                            'bn' => "গ্রন্থাগার প্রতি বৃহস্পতিবার, শনিবার (সন্ধ্যা ৭:৩০ মি: থেকে ৯:০০ টা পর্যন্ত) ও রবিবার (সকাল ৯:৩০ মি: থেকে বেলা ১২:৩০ মি: পর্যন্ত) খোলা থাকে।",
+                            'tag' => "Library Schedule",
+                            'badge' => "bg-success text-white",
+                            'icon' => "fas fa-door-open"
+                        ],
+                        17 => [
+                            'en' => "Person(s) who can give recommendation, should have to take their own responsibility for the applicant, in terms with Dakshineswar Shayak Library. User of this library may recommend one person.",
+                            'bn' => "আবেদনকারীর নাম যারা অনুমোদন করবেন তারা সংস্থার সাথে আবেদনকারীর যোগাযোগের ক্ষেত্রে প্রয়োজনে দায়িত্ব নেবেন। দুজন অনুমোদনকারীর মধ্যে যে কোনও একজন সংস্থার সদস্য / সদস্যা (Member) হলেও চলবে।",
+                            'tag' => "Recommendation",
+                            'badge' => "bg-primary text-white",
+                            'icon' => "fas fa-user-check"
+                        ],
+                        18 => [
+                            'en' => "In all matters, the decision of the Library Authority shall be final and binding.",
+                            'bn' => "যে কোনো ক্ষেত্রে গ্রন্থাগার কর্তৃপক্ষের সিদ্ধান্তই চূড়ান্ত বলে গণ্য হবে।",
+                            'tag' => "Authority Final",
+                            'badge' => "bg-dark text-white",
+                            'icon' => "fas fa-gavel"
+                        ],
+                        19 => [
+                            'en' => "In case of any ambiguity or conflict in interpretation, the English terminology shall prevail.",
+                            'bn' => "নিয়মাবলী ব্যাখ্যার ক্ষেত্রে কোনো অস্পষ্টতা বা বিরোধ দেখা দিলে, ইংরেজি পরিভাষা প্রাধান্য পাবে।",
+                            'tag' => "Interpretation Clause",
+                            'badge' => "bg-primary text-white",
+                            'icon' => "fas fa-balance-scale"
+                        ]
+                    ];
+
+                    $bnNumbers = [
+                        1 => '১', 2 => '২', 3 => '৩', 4 => '৪', 5 => '৫',
+                        6 => '৬', 7 => '৭', 8 => '৮', 9 => '৯', 10 => '১০',
+                        11 => '১১', 12 => '১২', 13 => '১৩', 14 => '১৪', 15 => '১৫',
+                        16 => '১৬', 17 => '১৭', 18 => '১৮', 19 => '১৯'
+                    ];
+                    ?>
                     <form action="" method="POST">
                         <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
 
                         <div class="card sayak-card mb-4 border-top border-4 border-maroon">
                             <div class="card-header bg-white font-serif py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                 <div class="fw-bold fs-5 text-maroon" style="color: #7A0C0C;">
-                                    <i class="fas fa-gavel me-2"></i> User Rules & Regulations (rules.php)
+                                    <i class="fas fa-gavel me-2"></i> Official 19 Rules & Regulations (rules.php)
                                 </div>
                                 <a href="<?= BASE_URL ?>rules.php" target="_blank" class="btn btn-outline-maroon btn-sm font-serif">
                                     <i class="fas fa-external-link-alt me-1"></i> View Live Rules Page
@@ -643,83 +830,58 @@ require_once __DIR__ . '/../../includes/header.php';
                             <div class="card-body p-4">
                                 <div class="alert alert-light border shadow-sm mb-4">
                                     <i class="fas fa-info-circle text-primary me-2"></i>
-                                    <strong>Formatting Tip:</strong> Enter each rule on a new line. You can use standard text or HTML tags like <code>&lt;strong&gt;</code> and <code>&lt;code&gt;</code> for emphasis.
+                                    <strong>Bilingual Rules Management:</strong> You can edit both the English and Bengali texts for each of the 19 official rules. Changes made here will be reflected immediately on the public <code>rules.php</code> page in both language views.
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="form-label fw-bold small">Rules Page Header Subtitle Lead</label>
-                                    <input type="text" name="rules_lead" class="form-control" value="<?= escape(get_setting('rules_lead', 'Official code of conduct, lending policies, and fine structures governing Sayak Library.')) ?>" required>
+                                    <label class="form-label fw-bold small">Rules Page Header Subtitle / Lead Statement</label>
+                                    <input type="text" name="rules_lead" class="form-control" value="<?= escape(get_setting('rules_lead', 'Official code of conduct, borrowing privileges, caution money structure, and operating policies governing Dakshineswar Shayak Library.')) ?>" required>
                                 </div>
 
                                 <hr class="my-4">
 
-                                <!-- Rule Section 1 -->
-                                <div class="mb-4 p-3 bg-light rounded border">
-                                    <label class="form-label fw-bold text-maroon font-serif" style="color: #7A0C0C;">1. Membership Card & Identity Section</label>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-12">
-                                            <input type="text" name="rules_sec1_title" class="form-control fw-bold" value="<?= escape(get_setting('rules_sec1_title', '1. Membership Card & Identity')) ?>" required>
-                                        </div>
-                                    </div>
-                                    <label class="form-label small text-muted">Rule Items (one bullet per line):</label>
-                                    <textarea name="rules_sec1_content" class="form-control font-monospace small" rows="3"><?= escape(get_setting('rules_sec1_content', "• Members must present their physical or digital Member ID (e.g. <code>SL-MEM-000001</code>) at the entry counter and borrowing desk.\n• Membership is non-transferable. Borrowing privileges are restricted to the registered member.")) ?></textarea>
-                                </div>
+                                <h5 class="fw-bold font-serif text-maroon mb-3" style="color: #7A0C0C;">
+                                    <i class="fas fa-list-ol me-2"></i> Official 19 Rules (English & বাংলা)
+                                </h5>
 
-                                <!-- Rule Section 2 -->
-                                <div class="mb-4 p-3 bg-light rounded border">
-                                    <label class="form-label fw-bold text-maroon font-serif" style="color: #7A0C0C;">2. Physical Book Borrowing & Limits Section</label>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-12">
-                                            <input type="text" name="rules_sec2_title" class="form-control fw-bold" value="<?= escape(get_setting('rules_sec2_title', '2. Physical Book Borrowing & Limits')) ?>" required>
-                                        </div>
-                                    </div>
-                                    <label class="form-label small text-muted">Rule Items (one bullet per line):</label>
-                                    <textarea name="rules_sec2_content" class="form-control font-monospace small" rows="3"><?= escape(get_setting('rules_sec2_content', "• Active members can borrow up to <strong>3 physical books</strong> simultaneously for a standard period of <strong>14 days</strong>.\n• Reference books, rare manuscripts, and single-copy encyclopedias cannot be removed from the library reading hall.")) ?></textarea>
-                                </div>
-
-                                <!-- Rule Section 3 -->
-                                <div class="mb-4 p-3 bg-light rounded border">
-                                    <label class="form-label fw-bold text-maroon font-serif" style="color: #7A0C0C;">3. Fines, Grace Period & Payments Section</label>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-12">
-                                            <input type="text" name="rules_sec3_title" class="form-control fw-bold" value="<?= escape(get_setting('rules_sec3_title', '3. Fines, Grace Period & Payments')) ?>" required>
-                                        </div>
-                                    </div>
-                                    <label class="form-label small text-muted">Rule Items (one bullet per line):</label>
+                                <?php for ($i = 1; $i <= 19; $i++): ?>
                                     <?php
-                                    $defaultSec3 = "• A fine rate of <strong>₹" . number_format((float)get_setting('fine_per_day', '5.00'), 2) . " per day</strong> applies to overdue items after a <strong>" . get_setting('grace_period_days', '2') . "-day grace period</strong>.\n• All fine payments are collected in <strong>CASH</strong> at the librarian desk with an official printed cash receipt (<code>SL-RCP-000001</code>).";
+                                    $ruleDef = $officialRulesCMS[$i];
+                                    $currentEn = get_setting("rule_{$i}_en", $ruleDef['en']);
+                                    $currentBn = get_setting("rule_{$i}_bn", $ruleDef['bn']);
+                                    $badgeStyle = $ruleDef['badge'] ?? 'bg-secondary text-white';
                                     ?>
-                                    <textarea name="rules_sec3_content" class="form-control font-monospace small" rows="3"><?= escape(get_setting('rules_sec3_content', $defaultSec3)) ?></textarea>
-                                </div>
-
-                                <!-- Rule Section 4 -->
-                                <div class="mb-4 p-3 bg-light rounded border">
-                                    <label class="form-label fw-bold text-maroon font-serif" style="color: #7A0C0C;">4. 15-Day Expiry & Restriction Rule Section</label>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-12">
-                                            <input type="text" name="rules_sec4_title" class="form-control fw-bold" value="<?= escape(get_setting('rules_sec4_title', '4. Important 15-Day Expiry & Restriction Rule (Rule #43)')) ?>" required>
+                                    <div class="card mb-3 border shadow-sm">
+                                        <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center flex-wrap">
+                                            <div class="fw-bold">
+                                                <i class="<?= escape($ruleDef['icon']) ?> text-maroon me-2" style="color: #7A0C0C;"></i>
+                                                Rule #<?= $i ?> <span class="text-muted fw-normal">| নিয়ম নং <?= $bnNumbers[$i] ?></span>
+                                            </div>
+                                            <span class="badge <?= escape($badgeStyle) ?> rounded-pill small"><?= escape($ruleDef['tag']) ?></span>
+                                        </div>
+                                        <div class="card-body p-3">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label fw-bold small text-primary">
+                                                        <i class="fas fa-language me-1"></i> English Rule Text
+                                                    </label>
+                                                    <textarea name="rule_<?= $i ?>_en" class="form-control" rows="3" style="font-size: 13.5px;"><?= escape($currentEn) ?></textarea>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label fw-bold small text-success">
+                                                        <i class="fas fa-feather-alt me-1"></i> বাংলা নিয়মাবলী (Bengali)
+                                                    </label>
+                                                    <textarea name="rule_<?= $i ?>_bn" class="form-control" rows="3" style="font-size: 13.5px;"><?= escape($currentBn) ?></textarea>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <label class="form-label small text-muted">Rule Items (one bullet per line):</label>
-                                    <textarea name="rules_sec4_content" class="form-control font-monospace small" rows="4"><?= escape(get_setting('rules_sec4_content', "• If a membership has expired for <strong>MORE THAN 15 DAYS</strong>, the account status automatically shifts to <code>RESTRICTED</code>.\n• Restricted members cannot borrow new books or access member features until membership renewal is completed.\n• <strong>Note:</strong> Librarians remain fully authorized to receive returned books and collect outstanding fines from restricted accounts.")) ?></textarea>
-                                </div>
-
-                                <!-- Rule Section 5 -->
-                                <div class="mb-4 p-3 bg-light rounded border">
-                                    <label class="form-label fw-bold text-maroon font-serif" style="color: #7A0C0C;">5. Digital PDF Library Guidelines Section</label>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-12">
-                                            <input type="text" name="rules_sec5_title" class="form-control fw-bold" value="<?= escape(get_setting('rules_sec5_title', '5. Digital PDF Library Guidelines')) ?>" required>
-                                        </div>
-                                    </div>
-                                    <label class="form-label small text-muted">Rule Items (one bullet per line):</label>
-                                    <textarea name="rules_sec5_content" class="form-control font-monospace small" rows="3"><?= escape(get_setting('rules_sec5_content', "• Members are granted online in-browser reading privileges for digital PDFs.\n• <strong>Downloading or printing PDFs is strictly prohibited for members.</strong> Backend authorization will block direct file downloads.")) ?></textarea>
-                                </div>
+                                <?php endfor; ?>
                             </div>
                         </div>
 
                         <button type="submit" name="save_rules_cms" class="btn btn-maroon btn-lg w-100 font-serif fw-bold py-3" style="background-color: #7A0C0C;">
-                            <i class="fas fa-save me-2"></i> Save User Rules & Regulations Content
+                            <i class="fas fa-save me-2"></i> Save All 19 Rules & Regulations
                         </button>
                     </form>
                 </div>
@@ -743,42 +905,27 @@ require_once __DIR__ . '/../../includes/header.php';
                             </div>
                             <div class="card-body p-4">
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold small">Journey Page Lead Subtitle</label>
-                                    <input type="text" name="journey_lead" class="form-control" value="<?= escape(get_setting('journey_lead', 'Tracing three decades of educational dedication, literature preservation, and community empowerment.')) ?>">
+                                    <label class="form-label fw-bold small">Journey Page Headline / Lead Subtitle</label>
+                                    <input type="text" name="journey_lead" class="form-control" value="<?= escape(get_setting('journey_lead', 'From Shishu Vikash School’s Cabinet to 11 Nepal Chandra Chatterjee Street — 28+ Years of Dedication & Service')) ?>">
                                 </div>
 
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold small">1995 Foundation Milestone Title</label>
-                                        <input type="text" name="journey_1995_title" class="form-control" value="<?= escape(get_setting('journey_1995_title', '1995: The Foundation')) ?>">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label fw-bold small">1995 Foundation Narrative</label>
-                                        <textarea name="journey_1995_desc" class="form-control" rows="2"><?= escape(get_setting('journey_1995_desc', 'SAYAK LIBRARY was founded in 1995 by a group of visionary scholars and educators in Kolkata with a initial collection of 1,200 books. The vision was simple yet powerful: to create an accessible repository of learning for all citizens regardless of economic background.')) ?></textarea>
-                                    </div>
+                                <?php
+                                $defaultJourneyStory = "From Shishu Vikash School’s Cabinet to a whole building at Nepal Chandra Chatterjee Street housing over 5000 books, Dakshineswar Shayak Library has come a long way in these past 28 years. This library began as a joint effort of a few bachelors in their twenties, who had the sole goal of delivering quality education to students regardless of their financial backgrounds.\n\nSo here we are, almost 3 decades later, a friendly, community-focused library to support undergraduate and postgraduate students by providing easy access to textbooks. Shayak was founded with the heartfelt support of people like you to ease the burden of expensive textbooks for students and their families, so they can focus on their studies without the stress of high costs. Through all the challenges, we’ve been here for students promoting equal educational opportunities for all.\n\nIn the early days when the founding members were in search of a space to house the library, Abhijit Ray and Avantika Ray were the ones who allowed them to use the ground floor of Shishu Vikash School. They gave many advice on various working of an organization, arranged for funding too.\n\nFast-forward a few years. From “Anandabazar Patrika’s” (আনন্দবাজার পত্রিকা) “Kolkatar Korcha” (কলকাতার কড়চা) section, Ganesh Bhattacharya and Mira Bhattacharya found out about the library. They approached us with generous funds in loving memory of their late son Niladri Bhattacharya. They have continued to support us to date through funds or any other means possible, even in their old age.\n\nIt is also mention-worthy that one of the most notable teachers of Ariadaha Kalachand Highschool, Dr. Rathin Mitra was also a very close well-wisher of us. Visiting us in his free time to give advice and admiring and motivating our dedication to give back to the society.\n\nEventually, we outgrew our space at Shishu Bikash School. Then, by sheer luck, Divyendu Vishnu and his wife, Srimati Leela Vishnu, offered us a whole building at 11 Nepal Chandra Chatterjee Street. On February 13, 2000, we inaugurated our permanent library location and it also marked the formation of Dakshineswar Shayak Library Trustee Committee. Since then, support from various community members, local leaders, and generations of volunteers has kept our library alive and thriving. And with their very help the library has been renovated to a two-storeyed well organized and decorated instituition.\n\nThanks to our generous donors, we’re able to keep this initiative growing. Join us in empowering students and building a brighter, more informed future! Your support helps us provide essential resources to students and uplifts our community as a whole. By contributing, you’re making a lasting impact on education and inspiring positive change.\n\nThank you for being part of our journey!";
+                                ?>
 
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold small">2008 Expansion Milestone Title</label>
-                                        <input type="text" name="journey_2008_title" class="form-control" value="<?= escape(get_setting('journey_2008_title', '2008: Academic Expansion')) ?>">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label fw-bold small">2008 Expansion Narrative</label>
-                                        <textarea name="journey_2008_desc" class="form-control" rows="2"><?= escape(get_setting('journey_2008_desc', 'With increasing enrollment of competitive examination aspirants and school students, the library introduced dedicated Higher Secondary and Civil Services prep wings, partnering with major Indian publishers.')) ?></textarea>
-                                    </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold small text-maroon font-serif" style="color: #7A0C0C;">
+                                        <i class="fas fa-feather-alt me-1"></i> Full Journey Story & History Narrative
+                                    </label>
+                                    <textarea name="journey_story_content" class="form-control" rows="14" style="line-height: 1.6; font-size: 14.5px;"><?= escape(get_setting('journey_story_content', $defaultJourneyStory)) ?></textarea>
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle text-primary me-1"></i> Separate paragraphs with double enter (blank line). This story will be rendered with rich layout, milestone badges, and donor tributes on the public <code>our-journey.php</code> page.
+                                    </small>
+                                </div>
 
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold small">Present Day Milestone Title</label>
-                                        <input type="text" name="journey_present_title" class="form-control" value="<?= escape(get_setting('journey_present_title', 'Present Day: Digital & Physical Integration')) ?>">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label fw-bold small">Present Day Narrative</label>
-                                        <textarea name="journey_present_desc" class="form-control" rows="2"><?= escape(get_setting('journey_present_desc', 'Today, Sayak Library houses over 25,000 physical volumes and an integrated Digital PDF Library, serving thousands of registered members with barcoded lending and in-browser e-learning access.')) ?></textarea>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <label class="form-label fw-bold small">Core Mission Highlight Text</label>
-                                        <textarea name="journey_mission" class="form-control" rows="2"><?= escape(get_setting('journey_mission', 'To foster lifelong learning, preserve Bengali and Indian literary heritage, and equip students with modern digital resources in a quiet, modern academic environment.')) ?></textarea>
-                                    </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small">Core Mission / Call-to-Action Highlight Text</label>
+                                    <textarea name="journey_mission" class="form-control" rows="2"><?= escape(get_setting('journey_mission', 'Join us in empowering students and building a brighter, more informed future! Your support helps us provide essential resources to students and uplifts our community as a whole.')) ?></textarea>
                                 </div>
                             </div>
                         </div>
@@ -948,6 +1095,23 @@ require_once __DIR__ . '/../../includes/header.php';
                         </div>
                         <div class="card-body p-0">
                             <?php if (!empty($govMembers)): ?>
+                                <?php
+                                $countGov = count(array_filter($govMembers, fn($m) => ($m['committee_type'] ?? 'Governing Body') === 'Governing Body'));
+                                $countWork = count(array_filter($govMembers, fn($m) => ($m['committee_type'] ?? '') === 'Working Committee'));
+                                ?>
+                                <div class="px-4 py-2 bg-light border-bottom d-flex gap-2 align-items-center flex-wrap">
+                                    <span class="small fw-bold text-muted me-1"><i class="fas fa-filter me-1"></i> Quick Filter:</span>
+                                    <button type="button" class="btn btn-sm btn-dark rounded-pill px-3" id="filterBtnAll" onclick="filterCommitteeTable('All')">
+                                        All Members (<?= count($govMembers) ?>)
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" id="filterBtnGov" onclick="filterCommitteeTable('Governing Body')">
+                                        <i class="fas fa-landmark me-1"></i> Governing Body (<?= $countGov ?>)
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3" id="filterBtnWork" onclick="filterCommitteeTable('Working Committee')">
+                                        <i class="fas fa-hands-helping me-1"></i> Working Committee (<?= $countWork ?>)
+                                    </button>
+                                </div>
+
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle mb-0">
                                         <thead class="table-light">
@@ -955,14 +1119,15 @@ require_once __DIR__ . '/../../includes/header.php';
                                                 <th style="width: 70px;">Order</th>
                                                 <th style="width: 80px;">Photo</th>
                                                 <th>Member Name & Bio</th>
+                                                <th>Committee Body</th>
                                                 <th>Official Designation</th>
                                                 <th>Status</th>
                                                 <th class="text-end pe-4" style="width: 140px;">Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody id="govMembersTableBody">
                                             <?php foreach ($govMembers as $m): ?>
-                                                <tr>
+                                                <tr data-committee="<?= escape($m['committee_type'] ?? 'Governing Body') ?>">
                                                     <td>
                                                         <span class="badge bg-light text-dark border font-monospace"><?= (int)$m['sort_order'] ?></span>
                                                     </td>
@@ -978,6 +1143,17 @@ require_once __DIR__ . '/../../includes/header.php';
                                                     <td>
                                                         <strong class="font-serif text-dark fs-6 d-block"><?= escape($m['name']) ?></strong>
                                                         <small class="text-muted d-block"><?= escape($m['description'] ?: 'No biography entered.') ?></small>
+                                                    </td>
+                                                    <td>
+                                                        <?php if (($m['committee_type'] ?? 'Governing Body') === 'Governing Body'): ?>
+                                                            <span class="badge text-white font-serif" style="background-color: #7A0C0C; font-size: 11px;">
+                                                                <i class="fas fa-landmark me-1"></i> Governing Body
+                                                            </span>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-dark text-warning border font-serif" style="font-size: 11px;">
+                                                                <i class="fas fa-hands-helping me-1"></i> Working Committee
+                                                            </span>
+                                                        <?php endif; ?>
                                                     </td>
                                                     <td>
                                                         <span class="badge font-serif px-2 py-1" style="background-color: #FFF2F2; color: #7A0C0C; border: 1px solid #7A0C0C; font-size: 12px;">
@@ -996,7 +1172,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                                             <button type="button" class="btn btn-outline-maroon" onclick='editGovMember(<?= json_encode($m) ?>)' title="Edit Member">
                                                                 <i class="fas fa-edit"></i>
                                                             </button>
-                                                            <form action="" method="POST" class="d-inline" onsubmit="return confirm('Remove <?= escape(addslashes($m['name'])) ?> from the governing body?');">
+                                                            <form action="" method="POST" class="d-inline" onsubmit="return confirm('Remove <?= escape(addslashes($m['name'])) ?> from the roster?');">
                                                                 <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
                                                                 <input type="hidden" name="member_id" value="<?= $m['id'] ?>">
                                                                 <button type="submit" name="delete_gov_member" class="btn btn-outline-danger" title="Delete Member">
@@ -1011,10 +1187,10 @@ require_once __DIR__ . '/../../includes/header.php';
                                     </table>
                                 </div>
                             <?php else: ?>
-                                <div class="text-center py-5 text-muted">
-                                    <i class="fas fa-users-slash fa-3x mb-3 text-secondary"></i>
-                                    <h6>No Governing Body members configured.</h6>
-                                    <button type="button" class="btn btn-maroon btn-sm mt-2" onclick="openAddGovModal()" style="background-color: #7A0C0C;">Add First Member</button>
+                                <div class="text-center py-5">
+                                    <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted font-serif">No Governing Body Members Found</h5>
+                                    <p class="text-secondary small">Click "Add New Member" to add council members and committee officers.</p>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -1029,10 +1205,10 @@ require_once __DIR__ . '/../../includes/header.php';
 <!-- MODAL: ADD / EDIT GOVERNING BODY MEMBER                      -->
 <!-- ============================================================ -->
 <div class="modal fade" id="govMemberModal" tabindex="-1" aria-labelledby="govMemberModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-maroon text-white" style="background-color: #7A0C0C;">
-                <h5 class="modal-title font-serif" id="govMemberModalTitle">Add New Governing Body Member</h5>
+                <h5 class="modal-title font-serif" id="govMemberModalTitle">Add New Member</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="" method="POST" enctype="multipart/form-data">
@@ -1042,35 +1218,42 @@ require_once __DIR__ . '/../../includes/header.php';
 
                     <div class="row g-3">
                         <!-- Full Name -->
-                        <div class="col-md-7">
+                        <div class="col-md-5">
                             <label class="form-label fw-bold small">Full Name <span class="text-danger">*</span></label>
-                            <input type="text" name="name" id="gov_name" class="form-control" placeholder="e.g. Prof. Subhash Chandra Ghosh" required>
+                            <input type="text" name="name" id="gov_name" class="form-control" placeholder="e.g. Anjan Basu" required>
+                        </div>
+
+                        <!-- Committee Body -->
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small">Committee Body <span class="text-danger">*</span></label>
+                            <select name="committee_type" id="gov_committee_type" class="form-select">
+                                <option value="Governing Body">Governing Body (পরিচালনা পর্ষদ)</option>
+                                <option value="Working Committee">Working Committee (কর্মী সমিতি)</option>
+                            </select>
                         </div>
 
                         <!-- Designation -->
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold small">Designation / Title <span class="text-danger">*</span></label>
-                            <input type="text" name="designation" id="gov_designation" class="form-control" list="designationSuggestions" placeholder="e.g. President, Governing Body" required>
+                            <input type="text" name="designation" id="gov_designation" class="form-control" list="designationSuggestions" placeholder="e.g. President" required>
                             <datalist id="designationSuggestions">
-                                <option value="President, Governing Body">
+                                <option value="President">
                                 <option value="Vice President">
-                                <option value="General Secretary">
-                                <option value="Treasurer & Finance Controller">
-                                <option value="Ex-Officio Member Secretary">
-                                <option value="Executive Committee Member">
+                                <option value="Secretary">
+                                <option value="Assistant Secretary">
+                                <option value="Treasurer">
+                                <option value="Assistant Treasurer">
+                                <option value="Working Committee Member">
+                                <option value="Executive Member">
                                 <option value="Academic Advisor">
-                                <option value="Legal Advisor">
                                 <option value="Chief Librarian">
-                                <option value="Trustee">
-                                <option value="Patron">
                             </datalist>
-                            <small class="text-muted">You can select or type any custom designation.</small>
                         </div>
 
                         <!-- Description / Bio -->
                         <div class="col-12">
-                            <label class="form-label fw-bold small">Bio / Department / Qualifications</label>
-                            <textarea name="description" id="gov_description" class="form-control" rows="2" placeholder="e.g. Senior Library Science Specialist & Academician."></textarea>
+                            <label class="form-label fw-bold small">Bio / Department / Responsibilities</label>
+                            <textarea name="description" id="gov_description" class="form-control" rows="2" placeholder="e.g. President, Dakshineswar Shayak Library Governing Body."></textarea>
                         </div>
 
                         <!-- Photo Upload with Live Preview -->
@@ -1101,10 +1284,13 @@ require_once __DIR__ . '/../../includes/header.php';
                             <label class="form-label fw-bold small">Fallback Avatar Icon</label>
                             <select name="icon" id="gov_icon" class="form-select form-select-sm">
                                 <option value="fa-user-tie">Executive / Tie (fa-user-tie)</option>
-                                <option value="fa-user-graduate">Scholar / Academic (fa-user-graduate)</option>
                                 <option value="fa-user-shield">Trustee / Shield (fa-user-shield)</option>
-                                <option value="fa-user-tag">Administrator / Officer (fa-user-tag)</option>
-                                <option value="fa-award">Honorary / Award (fa-award)</option>
+                                <option value="fa-user-graduate">Scholar / Secretary (fa-user-graduate)</option>
+                                <option value="fa-user-cog">Coordinator / Assistant (fa-user-cog)</option>
+                                <option value="fa-coins">Treasurer / Coins (fa-coins)</option>
+                                <option value="fa-calculator">Auditor / Calculator (fa-calculator)</option>
+                                <option value="fa-user-check">Committee Member (fa-user-check)</option>
+                                <option value="fa-user-plus">Vacant / Open (fa-user-plus)</option>
                                 <option value="fa-user">Standard Profile (fa-user)</option>
                             </select>
                             <small class="text-muted">Used if no photo is uploaded.</small>
@@ -1140,9 +1326,10 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <script>
 function openAddGovModal() {
-    document.getElementById('govMemberModalTitle').innerText = 'Add New Governing Body Member';
+    document.getElementById('govMemberModalTitle').innerText = 'Add New Member';
     document.getElementById('gov_member_id').value = '0';
     document.getElementById('gov_name').value = '';
+    document.getElementById('gov_committee_type').value = 'Governing Body';
     document.getElementById('gov_designation').value = '';
     document.getElementById('gov_description').value = '';
     document.getElementById('gov_icon').value = 'fa-user-tie';
@@ -1165,9 +1352,10 @@ function openAddGovModal() {
 }
 
 function editGovMember(m) {
-    document.getElementById('govMemberModalTitle').innerText = 'Edit Governing Body Member';
+    document.getElementById('govMemberModalTitle').innerText = 'Edit Member';
     document.getElementById('gov_member_id').value = m.id;
     document.getElementById('gov_name').value = m.name;
+    document.getElementById('gov_committee_type').value = m.committee_type || 'Governing Body';
     document.getElementById('gov_designation').value = m.designation;
     document.getElementById('gov_description').value = m.description || '';
     document.getElementById('gov_icon').value = m.icon || 'fa-user-tie';
@@ -1210,6 +1398,26 @@ function previewGovPhoto(input) {
         };
         reader.readAsDataURL(input.files[0]);
     }
+}
+
+function filterCommitteeTable(type) {
+    var rows = document.querySelectorAll('#govMembersTableBody tr');
+    rows.forEach(function(row) {
+        var comm = row.getAttribute('data-committee') || 'Governing Body';
+        if (type === 'All' || comm === type) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    var btnAll = document.getElementById('filterBtnAll');
+    var btnGov = document.getElementById('filterBtnGov');
+    var btnWork = document.getElementById('filterBtnWork');
+
+    if (btnAll) btnAll.className = 'btn btn-sm ' + (type === 'All' ? 'btn-dark' : 'btn-outline-dark') + ' rounded-pill px-3';
+    if (btnGov) btnGov.className = 'btn btn-sm ' + (type === 'Governing Body' ? 'btn-danger text-white' : 'btn-outline-danger') + ' rounded-pill px-3';
+    if (btnWork) btnWork.className = 'btn btn-sm ' + (type === 'Working Committee' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark') + ' rounded-pill px-3';
 }
 </script>
 

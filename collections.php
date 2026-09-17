@@ -4,6 +4,103 @@ require_once __DIR__ . '/includes/header.php';
 
 $db = getDB();
 
+// Check catalog mode (Database vs Google Sheet)
+$catalogMode = get_setting('catalog_mode', 'database');
+if ($catalogMode === 'sheet') {
+    $sheetUrl = get_setting('catalog_sheet_url', '');
+    $embedUrl = get_catalog_sheet_embed_url($sheetUrl);
+    $sheetTitle = get_setting('catalog_sheet_title', 'Library Books & Catalog Resources');
+    $sheetNotice = get_setting('catalog_sheet_notice', 'Our physical library collection is currently being digitized into this portal. In the meantime, please browse our complete book list, titles, and links in the live spreadsheet below.');
+    ?>
+    <div class="container-fluid px-lg-5 py-4">
+        <!-- Notice & Header Card -->
+        <div class="card sayak-card mb-4 border-0 shadow-sm overflow-hidden">
+            <div class="p-4 text-white" style="background: linear-gradient(135deg, #7A0C0C 0%, #4A0505 100%);">
+                <div class="d-md-flex justify-content-between align-items-center">
+                    <div class="mb-3 mb-md-0">
+                        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">
+                            <i class="fas fa-file-excel me-1"></i> Interactive Spreadsheet Catalog
+                        </span>
+                        <h2 class="font-serif fw-bold mb-1 text-white"><?= escape($sheetTitle) ?></h2>
+                        <p class="mb-0 text-white-50 small" style="max-width: 800px;"><?= nl2br(escape($sheetNotice)) ?></p>
+                    </div>
+                    <?php if (!empty($sheetUrl)): ?>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="<?= escape($sheetUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-warning btn-sm fw-bold px-3 py-2 shadow-sm text-dark">
+                                <i class="fas fa-external-link-alt me-1"></i> Open in Google Sheets
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="bg-light px-4 py-2 border-top d-flex justify-content-between align-items-center flex-wrap gap-2 text-muted small">
+                <div>
+                    <i class="fas fa-info-circle text-primary me-1"></i> <strong>Search Tip:</strong> Click inside the sheet below and press <kbd class="bg-white text-dark border">Ctrl</kbd> + <kbd class="bg-white text-dark border">F</kbd> (or <kbd class="bg-white text-dark border">⌘</kbd> + <kbd class="bg-white text-dark border">F</kbd> on Mac) to search any book title or writer instantly.
+                </div>
+                <div>
+                    <i class="fas fa-sync-alt text-success me-1"></i> Live Auto-Updated
+                </div>
+            </div>
+        </div>
+
+        <?php if (isset($_SESSION['role_code']) && in_array($_SESSION['role_code'], ['SUPER_ADMIN', 'LIBRARIAN'])): ?>
+            <div class="alert alert-warning border-start border-4 border-warning shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 py-2">
+                <div class="small">
+                    <strong><i class="fas fa-user-shield me-1 text-warning"></i> Admin Notice:</strong> Public users currently see this Google Sheet. You and your staff can continue entering physical books & PDF documents in the background without exposing an incomplete catalog.
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="<?= BASE_URL ?>admin/books/index.php" class="btn btn-sm btn-dark">
+                        <i class="fas fa-book-medical me-1"></i> Enter Books (Admin)
+                    </a>
+                    <a href="<?= BASE_URL ?>admin/settings/index.php#catalog-settings" class="btn btn-sm btn-outline-dark">
+                        <i class="fas fa-cog me-1"></i> Mode Settings
+                    </a>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($embedUrl)): ?>
+            <!-- Google Sheet Iframe Container -->
+            <div class="card sayak-card border-0 shadow-sm overflow-hidden mb-4">
+                <div style="min-height: 780px;">
+                    <iframe 
+                        src="<?= escape($embedUrl) ?>" 
+                        style="width: 100%; height: 780px; border: 0;" 
+                        allowfullscreen
+                        loading="lazy"
+                    ></iframe>
+                </div>
+                <div class="card-footer bg-white text-center py-2 small text-muted border-top">
+                    Having trouble viewing the embedded sheet? 
+                    <a href="<?= escape($sheetUrl) ?>" target="_blank" rel="noopener noreferrer" class="fw-bold text-maroon ms-1" style="color: #7A0C0C;">
+                        Click here to view full sheet in Google Sheets <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="card sayak-card border-0 shadow-sm p-5 text-center my-4">
+                <div class="py-4">
+                    <i class="fas fa-file-excel fa-4x text-warning mb-3"></i>
+                    <h4 class="font-serif fw-bold">Google Sheet URL Not Configured</h4>
+                    <p class="text-muted" style="max-width: 600px; margin: 0 auto;">
+                        Google Sheet Mode is enabled, but the spreadsheet link has not been added yet in System Settings.
+                    </p>
+                    <?php if (isset($_SESSION['role_code']) && in_array($_SESSION['role_code'], ['SUPER_ADMIN', 'LIBRARIAN'])): ?>
+                        <div class="mt-3">
+                            <a href="<?= BASE_URL ?>admin/settings/index.php#catalog-settings" class="btn btn-maroon font-serif fw-bold" style="background-color: #7A0C0C;">
+                                <i class="fas fa-link me-1"></i> Configure Google Sheet Link in Settings
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+    <?php
+    require_once __DIR__ . '/includes/footer.php';
+    exit();
+}
+
 // Get Search & Filter parameters
 $searchQuery = sanitize_input($_GET['q'] ?? '');
 $catFilter = (int)($_GET['cat'] ?? 0);

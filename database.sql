@@ -558,6 +558,7 @@ CREATE TABLE `governing_body_members` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(150) NOT NULL,
   `designation` VARCHAR(150) NOT NULL,
+  `committee_type` VARCHAR(50) NOT NULL DEFAULT 'Governing Body',
   `description` TEXT DEFAULT NULL,
   `photo` VARCHAR(255) DEFAULT NULL,
   `icon` VARCHAR(50) DEFAULT 'fa-user-tie',
@@ -567,10 +568,19 @@ CREATE TABLE `governing_body_members` (
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `governing_body_members` (`id`, `name`, `designation`, `description`, `icon`, `sort_order`, `status`) VALUES
-(1, 'Prof. Subhash Chandra Ghosh', 'President, Governing Body', 'Former Head of Department, Comparative Literature.', 'fa-user-tie', 1, 'Active'),
-(2, 'Dr. Maitreyi Sen', 'General Secretary', 'Senior Library Science Specialist & Academician.', 'fa-user-graduate', 2, 'Active'),
-(3, 'Sri Bikash Das', 'Treasurer & Finance Controller', 'Chartered Accountant & Financial Trustee.', 'fa-user-shield', 3, 'Active'),
-(4, 'Chief Librarian', 'Ex-Officio Member Secretary', 'Head of Operations & Digital Resources.', 'fa-user-tag', 4, 'Active');
+INSERT INTO `governing_body_members` (`id`, `name`, `designation`, `committee_type`, `description`, `icon`, `sort_order`, `status`) VALUES
+(1, 'Anjan Basu', 'President', 'Governing Body', 'President, Dakshineswar Shayak Library Governing Body.', 'fa-user-tie', 1, 'Active'),
+(2, 'Pallab Adhikary', 'Vice President', 'Governing Body', 'Vice President, Dakshineswar Shayak Library Governing Body.', 'fa-user-shield', 2, 'Active'),
+(3, 'Sourav chandra Majee', 'Secretary', 'Governing Body', 'Secretary & Executive Officer, Dakshineswar Shayak Library.', 'fa-user-graduate', 3, 'Active'),
+(4, 'Sudip Kumar Denre', 'Assistant Secretary', 'Governing Body', 'Assistant Secretary, Administration & Member Affairs.', 'fa-user-cog', 4, 'Active'),
+(5, 'Lakshmi Denre', 'Assistant Secretary', 'Governing Body', 'Assistant Secretary, Operational & Cultural Coordination.', 'fa-user-cog', 5, 'Active'),
+(6, 'Arobinda Dutta', 'Treasurer', 'Governing Body', 'Treasurer & Finance Controller, Dakshineswar Shayak Library.', 'fa-coins', 6, 'Active'),
+(7, 'Abhimanyu Ganguly', 'Assistant Treasurer', 'Governing Body', 'Assistant Treasurer & Accounts Auditor.', 'fa-calculator', 7, 'Active'),
+(8, 'Sujit Panja', 'Working Committee Member', 'Working Committee', 'Library Operations, Program Coordination & Community Support.', 'fa-user-check', 11, 'Active'),
+(9, 'Diptesh Manna', 'Working Committee Member', 'Working Committee', 'Catalog Logistics, Book Preservation & Youth Engagement.', 'fa-user-check', 12, 'Active'),
+(10, 'Shayari Mondal', 'Working Committee Member', 'Working Committee', 'Reading Hall Assistance, Digital Archive & Patron Relations.', 'fa-user-check', 13, 'Active'),
+(11, 'Aishi Mitra Mustafi', 'Working Committee Member', 'Working Committee', 'Academic Outreach, Event Management & Student Resources.', 'fa-user-check', 14, 'Active'),
+(12, 'Anyasa Roy', 'Working Committee Member', 'Working Committee', 'Library Activities, Membership Desk & Educational Initiatives.', 'fa-user-check', 15, 'Active'),
+(13, '(Vacant)', 'Working Committee Member', 'Working Committee', 'Position to be filled / updated by administrator.', 'fa-user-plus', 16, 'Active');
 
 SET FOREIGN_KEY_CHECKS = 1;

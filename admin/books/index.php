@@ -552,6 +552,24 @@ require_once __DIR__ . '/../../includes/header.php';
                 </button>
             </div>
 
+            <?php if (get_setting('catalog_mode', 'database') === 'sheet'): ?>
+                <div class="alert alert-warning border-start border-4 border-warning shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                    <div>
+                        <div class="fw-bold text-dark mb-1">
+                            <i class="fas fa-file-excel text-warning me-2 fs-5"></i> Public Catalog is currently in "Google Sheet Mode"
+                        </div>
+                        <div class="small text-muted">
+                            The public website is actively showing your external Google Sheet. You can safely continue adding, editing, and uploading books here in the database in the background. When ready, switch to <strong>Live Database Mode</strong> in System Settings to reveal all books to users.
+                        </div>
+                    </div>
+                    <?php if (has_role('SUPER_ADMIN')): ?>
+                        <a href="<?= BASE_URL ?>admin/settings/index.php#catalog-settings" class="btn btn-warning btn-sm fw-bold text-dark text-nowrap">
+                            <i class="fas fa-sliders-h me-1"></i> Mode Settings
+                        </a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
     <?php if (!empty($errors)): ?>
         <div class="alert alert-danger shadow-sm mb-4">
             <ul class="mb-0">
